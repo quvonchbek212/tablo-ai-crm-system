@@ -1,0 +1,43 @@
+# Secrets and local connection material
+.env
+*.env
+backend/.env
+frontend/.env
+*.pem
+*.key
+id_rsa
+id_rsa.*
+
+# IDE and system
+.gemini/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Database-derived metadata may contain internal schema information
+backend/schema_metadata.json
+backend/schema_cache/
+backend/data/*.db
+backend/data/*.db-*
+backend/data/*.sqlite*
+backend/data/platform_state.json
+*.db
+*.sqlite*
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+venv/
+.venv/
+
+# Frontend
+frontend/node_modules/
+node_modules/
+frontend/dist/
+dist/
+
+# Local runtime output
+.codex_run/
+*.log

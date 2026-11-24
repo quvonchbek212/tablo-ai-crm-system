@@ -1,0 +1,347 @@
+{
+  "checked_at": "2026-11-24T17:42+05:00",
+  "dataset": "Bundled synthetic enterprise_1c.db",
+  "reference_suite": "../backend/enterprise_sales_cases.json",
+  "method": "Latest observed result for each question across four batches during development. Failed attempts are retained. This is not a single-run accuracy or uptime estimate. The first refund case was graded as error before the evaluator recognized the explicit missing-metric response.",
+  "outcomes": {
+    "correct": 20
+  },
+  "cases": [
+    {
+      "case": "cash",
+      "question": "Mijozlardan jami qancha pul tushgan? Faqat jami summani ko‘rsat.",
+      "final_outcome": "correct",
+      "attempts": [
+        {
+          "batch": 1,
+          "outcome": "correct",
+          "details": null,
+          "executed_sql": "SELECT SUM(amount) AS jami_pul_tushumi FROM payments",
+          "rows": 1
+        }
+      ]
+    },
+    {
+      "case": "gross_profit",
+      "question": "Yakunlangan buyurtmalar bo‘yicha yalpi foyda qancha? Faqat summani ko‘rsat.",
+      "final_outcome": "correct",
+      "attempts": [
+        {
+          "batch": 1,
+          "outcome": "correct",
+          "details": null,
+          "executed_sql": "SELECT SUM(total_amount - total_cost) AS gross_profit FROM orders WHERE status = 'completed'",
+          "rows": 1
+        }
+      ]
+    },
+    {
+      "case": "refunds",
+      "question": "2026-yil oktabrda mijozlarga qaytarilgan to‘lovlarning jami summasi qancha?",
+      "final_outcome": "correct",
+      "attempts": [
+        {
+          "batch": 1,
+          "outcome": "error",
+          "details": "metric_unavailable",
+          "executed_sql": "",
+          "rows": 0
+        },
+        {
+          "batch": 2,
+          "outcome": "correct",
+          "details": null,
+          "executed_sql": "",
+          "rows": 0
+        }
+      ]
+    },
+    {
+      "case": "completed_sales",
+      "question": "Yakunlangan buyurtmalarning jami sotuv summasi qancha?",
+      "final_outcome": "correct",
+      "attempts": [
+        {
+          "batch": 1,
+          "outcome": "correct",
+          "details": null,
+          "executed_sql": "SELECT SUM(total_amount) AS yakunlangan_buyurtmalar_summasi FROM orders WHERE status = 'completed'",
+          "rows": 1
+        }
+      ]
+    },
+    {
+      "case": "branch_ranking",
+      "question": "2026-yil oktabrda yakunlangan buyurtmalar summasi eng katta bo‘lgan uchta filial qaysi? Faqat filial nomi va summasini kamayish tartibida ko‘rsat.",
+      "final_outcome": "correct",
+      "attempts": [
+        {
+          "batch": 1,
+          "outcome": "error",
+          "details": "query_generation_failed",
+          "executed_sql": "",
+          "rows": 0
+        },
+        {
+          "batch": 2,
+          "outcome": "error",
+          "details": "query_generation_failed",
+          "executed_sql": "",
+          "rows": 0
+        },
+        {
+          "batch": 3,
+          "outcome": "error",
+          "details": "llm_unavailable",
+          "executed_sql": "",
+          "rows": 0
+        },
+        {
+          "batch": 4,
+          "outcome": "correct",
+          "details": null,
+          "executed_sql": "SELECT branches.name AS name, COALESCE(SUM(orders.total_amount), 0) AS completed_order_amount_uzs FROM orders LEFT JOIN branches ON orders.branch_id = branches.id WHERE orders.status = 'completed' AND orders.order_date >= '2026-10-01' AND orders.order_date < '2026-11-01' AND NOT branches.name IS NULL GROUP BY branches.name, branches.id ORDER BY \"completed_order_amount_uzs\" DESC, branches.id LIMIT 3",
+          "rows": 3
+        }
+      ]
+    },
+    {
+      "case": "oop_expense",
+      "question": "2026-yil oktabrda jami operatsion xarajat qancha bo‘lgan? Faqat summani ko‘rsat.",
+      "final_outcome": "correct",
+      "attempts": [
+        {
+          "batch": 1,
+          "outcome": "correct",
+          "details": null,
+          "executed_sql": "SELECT SUM(amount) AS jami_operatsion_xarajat FROM pnl_expenses WHERE expense_date >= '2026-10-01' AND expense_date <= '2026-10-31'",
+          "rows": 1
+        }
+      ]
+    },
+    {
+      "case": "cash_october",
+      "question": "2026-yil oktabrda to‘lov sanasi bo‘yicha mijozlardan qancha pul kelib tushgan?",
+      "final_outcome": "correct",
+      "attempts": [
+        {
+          "batch": 1,
+          "outcome": "correct",
+          "details": null,
+          "executed_sql": "SELECT SUM(amount) AS jami_pul_tushumi FROM payments WHERE payment_date >= '2026-10-01' AND payment_date <= '2026-10-31'",
+          "rows": 1
+        }
+      ]
+    },
+    {
+      "case": "distinct_buyers",
+      "question": "2026-yil oktabrda nechta turli mijozning kamida bitta buyurtmasi yakunlangan? Faqat sonini ko‘rsat.",
+      "final_outcome": "correct",
+      "attempts": [
+        {
+          "batch": 1,
+          "outcome": "error",
+          "details": "llm_rate_limited",
+          "executed_sql": "",
+          "rows": 0
+        },
+        {
+          "batch": 2,
+          "outcome": "error",
+          "details": "question_plan_invalid",
+          "executed_sql": "",
+          "rows": 0
+        },
+        {
+          "batch": 3,
+          "outcome": "correct",
+          "details": null,
+          "executed_sql": "SELECT COUNT(DISTINCT client_id) AS mijozlar_soni FROM orders WHERE status = 'completed' AND order_date >= '2026-10-01' AND order_date < '2026-11-01'",
+          "rows": 1
+        }
+      ]
+    },
+    {
+      "case": "after_tax",
+      "question": "Barcha soliqlar va foiz xarajatlaridan keyin qolgan sof foyda qancha?",
+      "final_outcome": "correct",
+      "attempts": [
+        {
+          "batch": 2,
+          "outcome": "correct",
+          "details": null,
+          "executed_sql": "",
+          "rows": 0
+        }
+      ]
+    },
+    {
+      "case": "avg_check",
+      "question": "2026-yil oktabrda yakunlangan buyurtmaning o‘rtacha summasi qancha? So‘mgacha yaxlitla.",
+      "final_outcome": "correct",
+      "attempts": [
+        {
+          "batch": 2,
+          "outcome": "correct",
+          "details": null,
+          "executed_sql": "SELECT ROUND(AVG(total_amount)) AS average_amount FROM orders WHERE status = 'completed' AND order_date >= '2026-10-01' AND order_date < '2026-11-01'",
+          "rows": 1
+        }
+      ]
+    },
+    {
+      "case": "overdue",
+      "question": "Yig‘ilgan qoldiqlar bo‘yicha muddati o‘tgan debitorlik qarzining jami summasi qancha?",
+      "final_outcome": "correct",
+      "attempts": [
+        {
+          "batch": 2,
+          "outcome": "correct",
+          "details": null,
+          "executed_sql": "SELECT SUM(overdue_receivable) AS total_overdue_receivable FROM debt_settlements",
+          "rows": 1
+        }
+      ]
+    },
+    {
+      "case": "smallest_branch",
+      "question": "2026-yil sentabrda yakunlangan buyurtma summasi eng kichik bo‘lgan ikkita filial qaysi? Faqat filial nomi va summasini o‘sish tartibida chiqar.",
+      "final_outcome": "correct",
+      "attempts": [
+        {
+          "batch": 2,
+          "outcome": "correct",
+          "details": null,
+          "executed_sql": "SELECT t1.name, t2.yakunlangan_buyurtmalar_summasi FROM (SELECT id, name FROM branches) AS t1 INNER JOIN (SELECT branch_id, SUM(total_amount) AS yakunlangan_buyurtmalar_summasi FROM orders WHERE status = 'completed' AND order_date >= '2026-09-01' AND order_date < '2026-10-01' GROUP BY branch_id) AS t2 ON t1.id = t2.branch_id WHERE NOT t1.name IS NULL ORDER BY t2.yakunlangan_buyurtmalar_summasi ASC LIMIT 2",
+          "rows": 2
+        }
+      ]
+    },
+    {
+      "case": "stock_skus",
+      "question": "Ombor qoldig‘i noldan katta bo‘lgan turli mahsulotlar jami nechta?",
+      "final_outcome": "correct",
+      "attempts": [
+        {
+          "batch": 2,
+          "outcome": "correct",
+          "details": null,
+          "executed_sql": "SELECT COUNT(DISTINCT products.id) FROM products INNER JOIN warehouse_stocks ON warehouse_stocks.product_id = products.id WHERE warehouse_stocks.quantity > 0",
+          "rows": 1
+        }
+      ]
+    },
+    {
+      "case": "completed_count",
+      "question": "2026-yil oktabrda jami nechta buyurtma yakunlangan?",
+      "final_outcome": "correct",
+      "attempts": [
+        {
+          "batch": 2,
+          "outcome": "correct",
+          "details": null,
+          "executed_sql": "SELECT COUNT(id) AS buyurtmalar_soni FROM orders WHERE status = 'completed' AND order_date >= '2026-10-01' AND order_date < '2026-11-01'",
+          "rows": 1
+        }
+      ]
+    },
+    {
+      "case": "cancelled_count",
+      "question": "2026-yil sentabrda bekor qilingan buyurtmalar soni qancha?",
+      "final_outcome": "correct",
+      "attempts": [
+        {
+          "batch": 2,
+          "outcome": "correct",
+          "details": null,
+          "executed_sql": "SELECT COUNT(id) AS bekor_qilingan_buyurtmalar_soni FROM orders WHERE status = 'cancelled' AND order_date >= '2026-09-01' AND order_date < '2026-10-01'",
+          "rows": 1
+        }
+      ]
+    },
+    {
+      "case": "weighted_margin",
+      "question": "Yakunlangan buyurtmalarning umumiy yalpi marjasi necha foiz? Yalpi foydani jami sotuvga bo‘l va foizni ikki kasrgacha yaxlitla.",
+      "final_outcome": "correct",
+      "attempts": [
+        {
+          "batch": 2,
+          "outcome": "error",
+          "details": "llm_rate_limited",
+          "executed_sql": "",
+          "rows": 0
+        },
+        {
+          "batch": 3,
+          "outcome": "correct",
+          "details": null,
+          "executed_sql": "SELECT ROUND(100.0 * SUM(total_amount - total_cost) / NULLIF(SUM(total_amount), 0), 2) AS gross_margin_pct FROM orders WHERE status = 'completed'",
+          "rows": 1
+        }
+      ]
+    },
+    {
+      "case": "invoice_total",
+      "question": "2026-yil oktabrda faktura sanasi bo‘yicha yozilgan hisob-fakturalarning jami summasi qancha?",
+      "final_outcome": "correct",
+      "attempts": [
+        {
+          "batch": 3,
+          "outcome": "correct",
+          "details": null,
+          "executed_sql": "SELECT SUM(total_amount) AS total_sum FROM invoices WHERE invoice_date >= '2026-10-01' AND invoice_date < '2026-11-01'",
+          "rows": 1
+        }
+      ]
+    },
+    {
+      "case": "cash_method",
+      "question": "2026-yil oktabrda to‘lov usullari bo‘yicha qancha pul tushgan? Faqat usul kodi va summani kamayish tartibida ko‘rsat.",
+      "final_outcome": "correct",
+      "attempts": [
+        {
+          "batch": 3,
+          "outcome": "correct",
+          "details": null,
+          "executed_sql": "SELECT payment_method, SUM(amount) AS total_amount FROM payments WHERE payment_date >= '2026-10-01' AND payment_date < '2026-11-01' GROUP BY payment_method ORDER BY total_amount DESC",
+          "rows": 2
+        }
+      ]
+    },
+    {
+      "case": "revenue_missing_period",
+      "question": "Savdo nega pasaydi?",
+      "final_outcome": "correct",
+      "attempts": [
+        {
+          "batch": 3,
+          "outcome": "correct",
+          "details": null,
+          "executed_sql": "",
+          "rows": 0
+        }
+      ]
+    },
+    {
+      "case": "unpaid_balance",
+      "question": "Debitorlik hisob-kitoblarida mijozlardan olinadigan jami qoldiq qancha? Faqat summani ko‘rsat.",
+      "final_outcome": "correct",
+      "attempts": [
+        {
+          "batch": 3,
+          "outcome": "wrong_answer",
+          "details": "Answer, requested order, chart, or clarification differs from reference.",
+          "executed_sql": "SELECT SUM(total_amount) AS jami_qoldiq FROM invoices",
+          "rows": 1
+        },
+        {
+          "batch": 4,
+          "outcome": "correct",
+          "details": null,
+          "executed_sql": "SELECT COALESCE(SUM(debt_settlements.balance_receivable), 0) AS receivable_balance_uzs FROM debt_settlements",
+          "rows": 1
+        }
+      ]
+    }
+  ]
+}

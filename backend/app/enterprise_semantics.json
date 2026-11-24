@@ -1,0 +1,143 @@
+{
+  "schema_fingerprint": "d39511e3e89ed51022f6fe4cca03471dc87e9911955bea50e42a94c6e0b32306",
+  "reviewed": true,
+  "tables": [
+    {
+      "table": "payments",
+      "aliases": ["to'lov", "pul tushumi", "pul tushgan", "kelib tushgan pul", "cash receipts", "refund", "qaytarilgan pul"],
+      "description": "Recorded customer cash receipts in UZS. Sum amount by payment_date. Includes bank transfer, cash desk and corporate card unless the question specifies one method. Attribute a receipt to its branch through invoices.branch_id. A payment is always positive. Refunds and returns are not recorded in this dataset. Report the missing source when asked for refunds or amounts net of refunds; cancelled orders cannot measure returned cash.",
+      "role": "fact",
+      "grain": "One received payment per id. One invoice can have multiple payments.",
+      "default_time_column": "payment_date",
+      "default_time_format": "iso8601",
+      "measures": ["amount"],
+      "dimensions": ["payment_method"],
+      "certified": true
+    },
+    {
+      "table": "orders",
+      "aliases": ["buyurtma", "yalpi foyda", "tannarx", "gross profit", "sotuv summasi"],
+      "description": "Order amounts and cost of goods sold in UZS by order_date. Completed orders use status = 'completed'. For dashboard sales all statuses except 'cancelled' contribute. Gross profit is SUM(total_amount - total_cost) over the requested order population. Gross margin percent is 100 * gross profit / NULLIF(SUM(total_amount), 0). For net profit use the separate pnl_expenses source over the same scope and period. Order value and cash received have different amounts and dates. Refunds are unavailable.",
+      "role": "fact",
+      "grain": "One order per id, with branch_id. Aggregate order amounts before joining one-to-many details.",
+      "default_time_column": "order_date",
+      "default_time_format": "iso8601",
+      "measures": ["total_amount", "total_cost"],
+      "dimensions": ["branch_id", "status"],
+      "certified": true
+    },
+    {
+      "table": "order_items",
+      "aliases": ["buyurtma satrlari", "buyurtma pozitsiyalari", "mahsulot sotuvlari", "uskuna sotuvlari", "mahsulot marjasi"],
+      "description": "One discounted sale line per product. For product-level revenue use SUM(order_items.total_amount) on completed orders. Gross profit is SUM(total_amount - quantity * cost_price); gross margin percent is 100.0 times this profit divided by NULLIF(SUM(total_amount), 0). Group by products.id and name. Join orders by order_id for completion status and order date. Join products by product_id and product_categories by products.category_id. A multi-product invoice or payment does not allocate cash to a SKU.",
+      "role": "fact",
+      "grain": "One product line per id, many lines per order.",
+      "measures": ["quantity", "total_amount", "cost_price"],
+      "certified": true
+    },
+    {
+      "table": "products",
+      "aliases": ["mahsulot", "IT uskuna", "IT uskunalar", "qurilma", "hardware", "SKU"],
+      "description": "Product directory, with physical IT equipment identified by its product category. Use products.name to identify an individual product, products.sku for its SKU and products.category_id to look up the type. Current list prices and catalog costs are not the historical sale price and cost.",
+      "role": "dimension",
+      "grain": "One product per id and SKU.",
+      "default_label_column": "name",
+      "dimensions": ["sku", "category_id"],
+      "certified": true
+    },
+    {
+      "table": "product_categories",
+      "aliases": ["mahsulot turi", "mahsulot toifasi", "uskuna turi", "equipment category"],
+      "description": "Product types are named in product_categories.name. In this enterprise sample the physical IT equipment categories have codes CAT-SRV (servers), CAT-NET (network), CAT-STO (storage), CAT-SEC (security appliances), CAT-PWR (power and racks), CAT-CLI (workstations/laptops), and CAT-CAB (passive network, optics and cable). These codes define hardware for this source.",
+      "role": "dimension",
+      "grain": "One product category per id.",
+      "default_label_column": "name",
+      "dimensions": ["code"],
+      "certified": true
+    },
+    {
+      "table": "pnl_expenses",
+      "aliases": ["operatsion xarajat", "sof foyda", "net profit", "operating expense"],
+      "description": "Recorded operating expenses in UZS by expense_date. Dashboard net profit = non-cancelled order revenue minus cost of goods sold minus recorded operating expenses. Aggregate orders and expenses separately at the same grain before subtraction. There is no overhead allocation key for products and no separate tax or financing expense fact; explain these limits when requested. Product-level gross profit is available.",
+      "role": "fact",
+      "grain": "One recorded expense entry per id, assigned to one branch and department.",
+      "default_time_column": "expense_date",
+      "default_time_format": "iso8601",
+      "measures": ["amount"],
+      "dimensions": ["category", "branch_id", "department_id"],
+      "certified": true
+    },
+    {
+      "table": "debt_settlements",
+      "aliases": ["debitorlik", "mijoz qarzi", "olinadigan qoldiq", "receivable balance", "muddati o'tgan qarz"],
+      "description": "Current reconciliation balance in UZS per client contract. balance_receivable is the current amount still owed. overdue_receivable is the overdue portion. total_invoiced and invoices.total_amount are billed amounts before payments and cannot answer an outstanding-balance question. last_reconciliation_date is the latest check, not a ledger of historical balances.",
+      "role": "snapshot",
+      "grain": "One current reconciliation record per client and contract.",
+      "measures": ["balance_receivable", "overdue_receivable"],
+      "dimensions": ["client_id", "contract_id", "branch_id", "risk_level"],
+      "certified": true
+    },
+    {
+      "table": "branches",
+      "aliases": ["filial"],
+      "description": "Branch directory. Group separate branches by id and show name as the display label.",
+      "role": "dimension",
+      "grain": "One branch per id.",
+      "default_label_column": "name",
+      "certified": true
+    }
+  ],
+  "unavailable_metrics": [
+    {
+      "phrases": ["qancha pul qaytarilgan", "qancha pul qaytarildi", "qaytarilgan pul miqdori", "qaytarilgan pul summasi", "qaytarilgan pul qancha", "qaytarilgan pullar qancha", "qaytarimlar summasi", "qaytarim summasi", "qaytarilgan to'lovlar summasi", "qaytarilgan to'lovlar soni", "qaytarilgan mablag' miqdori", "qaytarilgan mablag'lar summasi", "refund amount", "refund count", "refund summasi", "total refunds", "refund rate", "net of refunds"],
+      "reason": "Bu bazada mijozlarga qaytarilgan to‘lovlar qayd etilmaydi. Summani yoki sonini hisoblash uchun qaytarim operatsiyalari manbasi kerak."
+    },
+    {
+      "phrases": ["soliqdan keyingi sof foyda", "soliqlardan keyingi sof foyda", "soliqdan keyingi foyda", "soliqlardan keyingi foyda", "soliqlardan keyin qolgan sof foyda", "soliqdan keyin qolgan sof foyda", "foiz xarajatlaridan keyin qolgan sof foyda", "foiz xarajatlaridan keyingi sof foyda", "soliq to'langandan keyingi foyda", "soliqlarni chegirgandan keyingi foyda", "after tax profit", "after tax net profit", "profit after tax"],
+      "reason": "Bu bazada foyda solig‘i va moliyalashtirish bo‘yicha foiz xarajatlari alohida qayd etilmaydi. Ulardan keyingi foydani hisoblash uchun shu davrdagi tegishli xarajatlar kerak. Mavjud ma’lumotdan yalpi foyda va operatsion xarajatlarni hisoblash mumkin."
+    }
+  ],
+  "metrics": [
+    {
+      "id": "receivable_balance_uzs",
+      "name": "Jami debitorlik qoldig‘i",
+      "aliases": ["mijozlardan olinadigan jami qoldiq", "olinadigan qarz qoldig'i", "total outstanding receivables"],
+      "table": "debt_settlements",
+      "aggregation": "sum",
+      "column": "balance_receivable",
+      "unit": "UZS",
+      "certified": true
+    },
+    {
+      "id": "overdue_receivable_uzs",
+      "name": "Muddati o'tgan debitorlik qarzi",
+      "aliases": ["muddati o'tgan qarz summasi", "overdue receivables"],
+      "table": "debt_settlements",
+      "aggregation": "sum",
+      "column": "overdue_receivable",
+      "unit": "UZS",
+      "certified": true
+    },
+    {
+      "id": "cash_receipts_uzs",
+      "name": "Jami pul tushumi",
+      "aliases": ["jami kelib tushgan pul", "total cash receipts"],
+      "table": "payments",
+      "aggregation": "sum",
+      "column": "amount",
+      "unit": "UZS",
+      "certified": true
+    },
+    {
+      "id": "completed_order_amount_uzs",
+      "name": "Yakunlangan buyurtmalar summasi",
+      "aliases": ["yakunlangan buyurtmalarning jami summasi", "total completed order value"],
+      "table": "orders",
+      "aggregation": "sum",
+      "column": "total_amount",
+      "filters": [{"column": "status", "operator": "eq", "value": "completed"}],
+      "unit": "UZS",
+      "certified": true
+    }
+  ]
+}

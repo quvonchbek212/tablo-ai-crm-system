@@ -1,0 +1,2143 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TabloAI Enterprise — Sun’iy Intellekt BI va Ma’lumotlar Tahlili Platformasi</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#EFF6FF',
+              100: '#DBEAFE',
+              200: '#BFDBFE',
+              300: '#93C5FD',
+              400: '#60A5FA',
+              500: '#3B82F6',
+              600: '#2563EB',
+              700: '#1D4ED8',
+              800: '#1E3A8A',
+              900: '#0F2557',
+              950: '#071430',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :where(.hidden) { display: none; }
+    [hidden] { display: none !important; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #F2F6FC;
+      color: #0F172A;
+      overflow-x: hidden;
+    }
+    .sidebar-gradient {
+      background: linear-gradient(180deg, #06122E 0%, #0B1F4D 52%, #102B68 100%);
+    }
+    .hero-blue-gradient {
+      background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 55%, #0284C7 100%);
+    }
+    .glass-card {
+      background: #FFFFFF;
+      border: 1px solid #E1EAF7;
+      box-shadow: 0 2px 10px -2px rgba(10, 29, 72, 0.05);
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+    .glass-card:hover {
+      border-color: #BFDBFE;
+      box-shadow: 0 10px 26px -8px rgba(37, 99, 235, 0.11);
+    }
+    .nav-item {
+      transition: all 0.16s ease;
+      border-left: 3px solid transparent;
+    }
+    .nav-item.active {
+      background: linear-gradient(90deg, rgba(59, 130, 246, 0.28) 0%, rgba(37, 99, 235, 0.08) 100%);
+      border-left-color: #60A5FA;
+      color: #FFFFFF;
+    }
+    .nav-item:not(.active):hover {
+      background: rgba(255, 255, 255, 0.07);
+      color: #FFFFFF;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+    .pulse-dot { animation: pulseDot 1.8s infinite ease-in-out; }
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-up { animation: fadeSlideUp 0.22s ease-out forwards; }
+    .chat-figure { margin: .8rem 0; padding: .75rem; border: 1px solid #cbd5e1; border-radius: .75rem; }
+    .chat-figure figcaption { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; margin-bottom: .5rem; }
+    .chat-figure small { color: #64748b; }
+    .chat-plot-scroll, .chat-table-scroll { overflow: auto; max-height: 22rem; }
+    .chat-plot-scroll svg { display: block; width: 100%; min-width: 360px; }
+    .chat-donut { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .chat-donut svg { flex: 0 1 160px; width: 42%; }
+    .chat-donut ul { font-size: .8rem; padding: 0; list-style: none; }
+    .chat-donut i { display: inline-block; width: .7em; height: .7em; margin-right: .45em; border-radius: 50%; }
+    .chat-evidence { font-size: .8rem; margin-top: .75rem; }
+    .chat-evidence summary { cursor: pointer; font-weight: 600; }
+    .chat-evidence th, .chat-evidence td { text-align: left; padding: .35rem .65rem; border-bottom: 1px solid #cbd5e1; }
+    .chat-evidence pre { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: .5rem; }
+    #chatForm button:disabled { opacity: .55; cursor: wait; }
+
+    /* Custom Range Slider */
+    input[type="range"].blue-slider {
+      accent-color: #2563EB;
+      cursor: pointer;
+    }
+
+    /* Dark Mode Theme */
+    body.dark-mode {
+      background-color: #061024;
+      color: #E2E8F0;
+    }
+    body.dark-mode .glass-card {
+      background: #0C1A36;
+      border-color: #1D3361;
+      box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.4);
+    }
+    body.dark-mode .glass-card:hover { border-color: #2563EB; }
+    body.dark-mode .topbar-surface {
+      background: rgba(9, 21, 46, 0.94);
+      border-color: #1D3361;
+    }
+    body.dark-mode .surface-muted {
+      background: #11244A;
+      border-color: #213B70;
+      color: #E2E8F0;
+    }
+    body.dark-mode .text-main { color: #F8FAFC; }
+    body.dark-mode .text-sub { color: #94A3B8; }
+    body.dark-mode .border-subtle { border-color: #1D3361; }
+    body.dark-mode table thead { background: #0F2248; color: #93C5FD; }
+    body.dark-mode table tbody tr:hover { background: #122854; }
+    body.dark-mode .dropdown-panel {
+      background: #0C1A36;
+      border-color: #213B70;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col lg:flex-row">
+
+  <!-- Mobile Sidebar Backdrop -->
+  <div id="mobileBackdrop" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 hidden lg:hidden"></div>
+
+  <!-- ==================== SIDEBAR ==================== -->
+  <aside id="sidebar" class="sidebar-gradient text-slate-300 w-64 shrink-0 fixed lg:sticky top-0 left-0 h-screen z-50 flex flex-col justify-between transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-out shadow-2xl">
+    <div class="flex flex-col h-full overflow-y-auto custom-scroll">
+      <!-- Brand + Environment Pill -->
+      <div class="px-5 py-4 border-b border-white/10">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 via-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-600/35 ring-1 ring-white/25">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="3" y="12" width="4" height="9" rx="1.2" fill="#FFFFFF" fill-opacity="0.72"/>
+                <rect x="10" y="7" width="4" height="14" rx="1.2" fill="#FFFFFF"/>
+                <rect x="17" y="3" width="4" height="18" rx="1.2" fill="#93C5FD"/>
+                <circle cx="19" cy="3.5" r="2.1" fill="#38BDF8"/>
+              </svg>
+            </div>
+            <div>
+              <span class="text-white font-extrabold text-xl tracking-tight">TabloAI</span>
+            </div>
+          </div>
+          <button id="closeSidebarBtn" class="lg:hidden p-1.5 rounded-lg text-blue-200 hover:bg-white/10" aria-label="Menyuni yopish">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="px-3 py-4 space-y-1 flex-1">
+        <p class="px-3 text-[10px] font-bold uppercase tracking-widest text-blue-300/55 mb-1.5">Tahlil va BI</p>
+
+        <button data-view="dashboard" class="nav-item active w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-left">
+          <span class="flex items-center gap-2.5">
+            <i data-lucide="layout-dashboard" class="w-4 h-4 shrink-0 text-blue-300"></i>
+            <span>Boshqaruv paneli</span>
+          </span>
+        </button>
+
+        <button data-view="analyst" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-left">
+          <span class="flex items-center gap-2.5">
+            <i data-lucide="sparkles" class="w-4 h-4 shrink-0 text-sky-300"></i>
+            <span>AI Tahlilchi</span>
+          </span>
+        </button>
+
+        <p class="px-3 pt-4 text-[10px] font-bold uppercase tracking-widest text-blue-300/55 mb-1.5">Hisobot va Baza</p>
+
+        <button data-view="reports" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-left">
+          <span class="flex items-center gap-2.5">
+            <i data-lucide="file-bar-chart-2" class="w-4 h-4 shrink-0 text-blue-300"></i>
+            <span>Hisobotlar</span>
+          </span>
+          <span id="sidebarReportsCount" class="text-[11px] font-semibold text-blue-200/80">4</span>
+        </button>
+
+        <button data-view="sources" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-left">
+          <span class="flex items-center gap-2.5">
+            <i data-lucide="database" class="w-4 h-4 shrink-0 text-blue-300"></i>
+            <span>Ma’lumotlar bazasi</span>
+          </span>
+          <span id="sidebarSourcesCount" class="text-[11px] font-semibold text-blue-200/80">—</span>
+        </button>
+      </nav>
+
+      <!-- Footer -->
+      <div class="p-3.5 border-t border-white/10 flex items-center justify-between text-xs text-blue-200/70">
+        <span>Mavzu</span>
+        <button id="themeToggleBtn" title="Mavzuni o‘zgartirish" class="p-2 rounded-lg text-blue-200 hover:bg-white/10 transition-colors" aria-label="Tungi yoki kunduzgi rejim">
+          <i data-lucide="moon" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ==================== MAIN WORKSPACE ==================== -->
+  <div class="flex-1 flex flex-col min-w-0">
+
+    <!-- Topbar -->
+    <header class="topbar-surface sticky top-0 z-30 bg-white/92 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 py-3">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <button id="openSidebarBtn" class="lg:hidden p-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-blue-50" aria-label="Menyuni ochish">
+            <i data-lucide="menu" class="w-5 h-5"></i>
+          </button>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <h1 id="pageTitle" class="text-main text-base sm:text-lg font-extrabold text-slate-900 truncate">Boshqaruv paneli</h1>
+              <span class="hidden md:inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-brand-700 border border-blue-200/80">
+                <span class="w-1.5 h-1.5 rounded-full bg-brand-600"></span>Live Sync
+              </span>
+            </div>
+            <p id="pageSubtitle" class="text-sub text-[11px] sm:text-xs text-slate-500 truncate">1C IT uskunalar, Server klasterlari va Tarmoq infratuzilmasi savdosi tahlili</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+          <!-- Currency Toggle -->
+          <div class="surface-muted inline-flex items-center rounded-xl bg-blue-50/90 border border-blue-100 p-0.5 text-xs font-semibold">
+            <button data-currency="USD" class="currency-btn px-2.5 py-1.5 rounded-lg bg-brand-600 text-white shadow-xs transition-all">USD</button>
+            <button data-currency="UZS" class="currency-btn px-2.5 py-1.5 rounded-lg text-slate-600 hover:text-brand-700 transition-all">UZS</button>
+          </div>
+
+          <!-- Notifications Bell -->
+          <div class="relative">
+            <button id="notifBtn" class="relative p-2 rounded-xl surface-muted bg-white border border-slate-200 hover:border-brand-300 text-slate-600 transition-colors" aria-label="Bildirishnomalar">
+              <i data-lucide="bell" class="w-4 h-4"></i>
+            </button>
+            <!-- Notifications Dropdown -->
+            <div id="notifDropdown" class="dropdown-panel hidden absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white border border-slate-200 shadow-2xl z-50 overflow-hidden animate-fade-up">
+              <div class="px-4 py-3 border-b border-subtle border-slate-100 flex items-center justify-between">
+                <span class="text-xs font-bold text-main text-slate-900">Bildirishnomalar</span>
+              </div>
+              <p class="p-4 text-sm text-sub">Yangi bildirishnomalar yo‘q.</p>
+            </div>
+          </div>
+
+          <!-- Quick AI Ask -->
+          <button id="quickAiBtn" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 text-xs font-semibold transition-colors">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-brand-600"></i>
+            <span class="hidden sm:inline">AI Copilot</span>
+          </button>
+
+          <!-- New Report Button -->
+          <button id="openReportModalBtn" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow-sm shadow-blue-600/25 transition-all">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Yangi hisobot</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ==================== MAIN CONTENT ==================== -->
+    <main class="flex-1 p-4 sm:p-6 max-w-[1520px] w-full mx-auto space-y-6">
+
+      <!-- ==================== VIEW 1: EXECUTIVE DASHBOARD ==================== -->
+      <section id="view-dashboard" class="space-y-5 animate-fade-up">
+
+        <!-- Control Bar -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="inline-flex items-center gap-1.5 surface-muted bg-white border border-slate-200 rounded-xl px-3 py-1.5">
+              <i data-lucide="calendar" class="w-3.5 h-3.5 text-brand-600"></i>
+              <select id="periodFilter" class="bg-transparent text-xs sm:text-sm font-semibold focus:outline-none cursor-pointer">
+                <option value="month">Oxirgi ma’lumot oyi</option>
+                <option value="quarter" selected>Oxirgi ma’lumot choragi</option>
+                <option value="year">Oxirgi ma’lumot yili</option>
+              </select>
+            </div>
+            <div class="inline-flex items-center gap-1.5 surface-muted bg-white border border-slate-200 rounded-xl px-3 py-1.5">
+              <i data-lucide="server" class="w-3.5 h-3.5 text-brand-600"></i>
+              <select id="deptFilter" class="bg-transparent text-xs sm:text-sm font-semibold focus:outline-none cursor-pointer">
+                <option value="all" selected>Barcha IT yo‘nalishlar</option>
+                <option value="servers">Server va Saqlash (HPE/Dell)</option>
+                <option value="network">Tarmoq va Firewall (Cisco/Fortinet)</option>
+                <option value="infrastructure">Quvvat, ish stansiyalari va kabellar</option>
+              </select>
+            </div>
+            <button id="refreshLiveBtn" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl surface-muted bg-white border border-slate-200 hover:border-brand-300 text-xs font-semibold text-slate-600 transition-colors">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-brand-600"></i>
+              <span>Yangilash</span>
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2 flex-wrap">
+            <button id="exportDashboardBtn" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl surface-muted bg-white border border-slate-200 hover:border-brand-300 text-xs font-semibold transition-colors">
+              <i data-lucide="download" class="w-3.5 h-3.5 text-brand-600"></i>
+              <span>CSV eksport</span>
+            </button>
+          </div>
+        </div>
+
+        <p id="dashboardStatus" class="text-sm text-slate-600" role="status"></p>
+        <div id="dashboardResults" class="space-y-5" hidden>
+        <!-- Executive KPI Grid (4 Rich Cards with Sparklines & Target Bars) -->
+        <div id="kpiGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4"></div>
+
+        <!-- Primary Analytics Row: Multi-Metric Forecast + Segment Breakdown -->
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-5">
+          <!-- Revenue / Profit / Orders Forecast Chart -->
+          <div class="glass-card rounded-2xl p-5 xl:col-span-8 flex flex-col">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <div>
+                <h2 class="text-main text-base font-bold text-slate-900">Buyurtmalar dinamikasi</h2>
+                <p class="text-sub text-xs text-slate-500">Prognoz tanlangan davrdagi o‘rtacha kunlik sur’atdan hisoblanadi.</p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <!-- Metric Switcher -->
+                <div class="surface-muted inline-flex rounded-xl bg-slate-100 p-0.5 text-[11px] font-semibold">
+                  <button data-metric="revenue" class="chart-metric-btn px-2.5 py-1 rounded-lg bg-brand-600 text-white transition-all">Daromad</button>
+                  <button data-metric="profit" class="chart-metric-btn px-2.5 py-1 rounded-lg text-slate-600 hover:text-brand-700 transition-all">Yalpi foyda</button>
+                  <button data-metric="orders" class="chart-metric-btn px-2.5 py-1 rounded-lg text-slate-600 hover:text-brand-700 transition-all">Buyurtmalar</button>
+                </div>
+                <!-- Confidence Band Toggle -->
+                <label class="inline-flex items-center gap-1.5 text-[11px] font-medium text-sub text-slate-600 cursor-pointer select-none px-2 py-1 rounded-lg surface-muted bg-slate-50 border border-slate-200/80">
+                  <input id="confidenceToggle" type="checkbox" checked class="accent-brand-600 rounded">
+                  <span>Prognoz</span>
+                </label>
+              </div>
+            </div>
+            <div class="relative h-72 w-full">
+              <canvas id="revenueChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Segment Share Card (Fixed non-truncating legend) -->
+          <div class="glass-card rounded-2xl p-5 xl:col-span-4 flex flex-col justify-between">
+            <div class="mb-3">
+              <h2 class="text-main text-base font-bold text-slate-900">Biznes yo‘nalishlar ulushi</h2>
+              <p class="text-sub text-xs text-slate-500">Daromad va marja kesimida taqsimot</p>
+            </div>
+            <div class="relative h-52 w-full">
+              <canvas id="segmentChart"></canvas>
+            </div>
+            <div id="segmentLegend" class="mt-4 space-y-2 text-xs"></div>
+          </div>
+        </div>
+
+        <!-- Secondary Row: P&L Margin Structure + Regional Performance + AI Executive Briefing -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <!-- P&L Stacked Cost vs Profit Chart -->
+          <div class="glass-card rounded-2xl p-5 lg:col-span-4 flex flex-col">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h2 class="text-main text-sm sm:text-base font-bold text-slate-900">P&L Xarajat va Foyda tuzilmasi</h2>
+                <p class="text-sub text-xs text-slate-500">Butun kompaniya bo‘yicha tannarx, operatsion xarajat va foyda</p>
+              </div>
+              <span class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-brand-50 text-brand-700">P&amp;L</span>
+            </div>
+            <div class="relative h-64 w-full">
+              <canvas id="pnlChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Regional Bar Chart -->
+          <div class="glass-card rounded-2xl p-5 lg:col-span-4 flex flex-col">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h2 class="text-main text-sm sm:text-base font-bold text-slate-900">Hududiy filiallar reytingi</h2>
+                <p class="text-sub text-xs text-slate-500">Filial hududi bo‘yicha buyurtmalar summasi</p>
+              </div>
+              <span class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-sky-50 text-sky-700 border border-sky-200/70">O‘zbekiston</span>
+            </div>
+            <div class="relative h-64 w-full">
+              <canvas id="regionChart"></canvas>
+            </div>
+          </div>
+
+          <!-- OpenAI Executive Insights -->
+          <div class="glass-card rounded-2xl p-5 lg:col-span-4 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-xl hero-blue-gradient flex items-center justify-center text-white shadow-sm">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                  </div>
+                  <div>
+                    <h2 class="text-main text-sm sm:text-base font-bold text-slate-900">AI Executive Briefing</h2>
+                    <p class="text-sub text-[11px] text-slate-500">Tahlilni davom ettirish uchun savollar</p>
+                  </div>
+                </div>
+                <span class="text-[10px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full">Jonli</span>
+              </div>
+              <div id="aiInsightsList" class="space-y-2.5"></div>
+            </div>
+            <button id="openFullAnalystBtn" class="mt-4 w-full py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm shadow-blue-600/20">
+              <span>AI Tahlilchini ochish</span>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- B2B Enterprise Metrics: Debitorlik Qarzdorligi & Ombor Zaxiralari -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <!-- Debitorlik Qarzdorligi (Accounts Receivable) -->
+          <div class="glass-card rounded-2xl p-5 lg:col-span-6 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center">
+                    <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                  </div>
+                  <div>
+                    <h2 class="text-main text-sm sm:text-base font-bold text-slate-900">Debitorlik qarzdorligi (1C ERP)</h2>
+                    <p class="text-sub text-[11px] text-slate-500">Mijozlar balansi va to‘lov intizomi monitoringi</p>
+                  </div>
+                </div>
+                <span id="debtCollectionRateBadge" class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  Undiruv: 99.5%
+                </span>
+              </div>
+
+              <!-- Mini KPI Row -->
+              <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="p-3 rounded-xl surface-muted bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80">
+                  <p class="text-[10px] font-semibold text-sub text-slate-500 uppercase">Jami qarz balansi</p>
+                  <p id="totalDebtLabel" class="text-base sm:text-lg font-extrabold text-main text-slate-900 mt-0.5">$451K</p>
+                </div>
+                <div class="p-3 rounded-xl surface-muted bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200/80">
+                  <p class="text-[10px] font-semibold text-amber-700 dark:text-amber-400 uppercase">Muddati o‘tgan qarz</p>
+                  <p id="overdueDebtLabel" class="text-base sm:text-lg font-extrabold text-amber-600 mt-0.5">$158K</p>
+                </div>
+              </div>
+
+              <!-- Top Debtors Mini Table -->
+              <div class="overflow-x-auto rounded-xl border border-subtle border-slate-200/80">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                    <tr>
+                      <th class="px-3 py-2">Mijoz / Tashkilot</th>
+                      <th class="px-3 py-2 text-right">Qarz</th>
+                      <th class="px-3 py-2 text-right">Kechikish</th>
+                      <th class="px-3 py-2 text-center">Xavf</th>
+                    </tr>
+                  </thead>
+                  <tbody id="debtorsTableBody" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ombor Zaxiralari (Warehouse Stock) -->
+          <div class="glass-card rounded-2xl p-5 lg:col-span-6 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 flex items-center justify-center">
+                    <i data-lucide="package" class="w-4 h-4"></i>
+                  </div>
+                  <div>
+                    <h2 class="text-main text-sm sm:text-base font-bold text-slate-900">Ombor zaxiralari va uskuna qoldiqlari</h2>
+                    <p class="text-sub text-[11px] text-slate-500">6 ta mintaqaviy ombor bo‘yicha IT uskunalar qiymati</p>
+                  </div>
+                </div>
+                <span id="stockUnitsBadge" class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-blue-50 text-brand-700 border border-blue-200">
+                  —
+                </span>
+              </div>
+
+              <!-- Mini KPI Row -->
+              <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="p-3 rounded-xl surface-muted bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80">
+                  <p class="text-[10px] font-semibold text-sub text-slate-500 uppercase">Jami zaxira qiymati</p>
+                  <p id="totalStockValueLabel" class="text-base sm:text-lg font-extrabold text-main text-slate-900 mt-0.5">$14.5M</p>
+                </div>
+                <div class="p-3 rounded-xl surface-muted bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200/80">
+                  <p class="text-[10px] font-semibold text-brand-700 dark:text-sky-300 uppercase">Faol omborlar</p>
+                  <p class="text-base sm:text-lg font-extrabold text-brand-600 mt-0.5">6 ta markaz</p>
+                </div>
+              </div>
+
+              <!-- Warehouses Breakdown List -->
+              <div id="warehousesStockList" class="space-y-2.5 max-h-56 overflow-y-auto custom-scroll pr-1"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Corporate Accounts & Products Interactive Table -->
+        <div class="glass-card rounded-2xl p-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <div>
+              <h2 class="text-main text-base font-bold text-slate-900">Top korporativ shartnomalar va mahsulot yo‘nalishlari</h2>
+              <p class="text-sub text-xs text-slate-500">Saralash, qidirish va har bir qator bo‘yicha bir klikda AI tahlil</p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <input id="dashTableSearch" type="text" placeholder="Mijoz yoki bo‘lim qidirish..." class="surface-muted px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs focus:outline-none focus:border-brand-500">
+              <select id="dashTableSort" class="surface-muted px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold focus:outline-none cursor-pointer">
+                <option value="revenue">Daromad bo‘yicha</option>
+                <option value="margin">Marja % bo‘yicha</option>
+                <option value="orders_count">Buyurtmalar soni bo‘yicha</option>
+              </select>
+            </div>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-subtle border-slate-200/80">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-brand-50/90 text-brand-900">
+                <tr>
+                  <th class="px-4 py-3 font-bold">Mijoz / Yo‘nalish</th>
+                  <th class="px-4 py-3 font-bold">Segment</th>
+                  <th class="px-4 py-3 font-bold">Hudud</th>
+                  <th class="px-4 py-3 font-bold text-right">Daromad</th>
+                  <th class="px-4 py-3 font-bold text-right">Marja</th>
+                  <th class="px-4 py-3 font-bold text-right">Buyurtmalar</th>
+                  <th class="px-4 py-3 font-bold">Holat</th>
+                  <th class="px-4 py-3 font-bold text-right">Amal</th>
+                </tr>
+              </thead>
+              <tbody id="dashTopTableBody" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+            </table>
+          </div>
+        </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 2: AI ANALYST STUDIO ==================== -->
+      <section id="view-analyst" class="hidden space-y-5 animate-fade-up">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <!-- Left Context & Prompts Panel -->
+          <div class="lg:col-span-4 space-y-4">
+            <div class="glass-card rounded-2xl p-5 space-y-3.5 shadow-sm">
+              <div class="flex items-center justify-between pb-3 border-b border-subtle border-slate-200/80">
+                <h3 class="text-main text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                  <i data-lucide="zap" class="w-4 h-4 text-brand-600"></i>
+                  Tezkor biznes savollari
+                </h3>
+              </div>
+              <p class="text-sub text-xs text-slate-500 leading-relaxed">
+                Savolni tanlang yoki o‘zingiz yozing.
+              </p>
+              <div id="presetPrompts" class="space-y-2 pt-1"></div>
+            </div>
+          </div>
+
+          <!-- Right Chat Workspace -->
+          <div class="lg:col-span-8 glass-card rounded-2xl flex flex-col h-[680px] overflow-hidden">
+            <div class="px-5 py-3.5 border-b border-subtle border-slate-200/80 flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl hero-blue-gradient text-white flex items-center justify-center shadow-sm">
+                  <i data-lucide="bot" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <p class="text-main text-sm font-bold text-slate-900">TabloAI Tahlilchi</p>
+                  <p id="chatSourceLabel" class="text-[11px] text-slate-500" role="status">Baza profili yuklanmoqda…</p>
+                </div>
+              </div>
+              <button id="clearChatBtn" class="text-xs font-semibold text-slate-500 hover:text-brand-600 px-3 py-1.5 rounded-lg hover:bg-brand-50 transition-colors">
+                Suhbatni tozalash
+              </button>
+            </div>
+
+            <div id="chatMessages" role="log" aria-live="polite" class="flex-1 overflow-y-auto custom-scroll p-5 space-y-5"></div>
+
+            <form id="chatForm" class="p-4 border-t border-subtle border-slate-200/80 flex items-center gap-2.5">
+              <input
+                id="chatInput"
+                aria-label="Tahlilchiga savol" maxlength="4000"
+                type="text"
+                placeholder="Masalan: B2B segmentida eng yuqori marjali mijozlar kim va ularning o‘sishi qancha?"
+                class="surface-muted flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+                autocomplete="off"
+              >
+              <button type="submit" class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold inline-flex items-center gap-1.5 shadow-sm shadow-blue-600/25 transition-colors shrink-0">
+                <span>Yuborish</span>
+                <i data-lucide="send" class="w-4 h-4"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 4: DATA SOURCES & CSV STUDIO ==================== -->
+      <section id="view-sources" class="hidden space-y-6 animate-fade-up">
+        <div class="glass-card rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-main text-base font-bold text-slate-900">Ulangan baza va lokal CSV</h2>
+            <p class="text-sub text-xs text-slate-500 mt-0.5">CSV faylni yuklab, qatorlari, ustunlari va bo‘sh kataklarini brauzerda tekshiring.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <label for="csvFileInput" class="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-semibold shadow-sm shadow-blue-600/25 transition-colors">
+              <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+              <span>CSV fayl yuklash</span>
+              <input id="csvFileInput" type="file" accept=".csv" class="hidden">
+            </label>
+            <button id="loadDemoCsvBtn" class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 text-xs sm:text-sm font-semibold transition-colors">
+              <i data-lucide="table" class="w-4 h-4"></i>
+              <span>Demo jadvalni yuklash</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="sourcesGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+
+        <!-- CSV Preview Table -->
+        <div id="csvPreviewSection" class="glass-card rounded-2xl p-5 hidden">
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div>
+              <h3 id="csvPreviewTitle" class="text-main text-base font-bold text-slate-900">Yuklangan jadval</h3>
+              <p id="csvPreviewMeta" class="text-sub text-xs text-slate-500"></p>
+            </div>
+            <button id="analyzeCsvBtn" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition-colors">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+              <span>CSV faylini tekshirish</span>
+            </button>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-subtle border-slate-200">
+            <table id="csvPreviewTable" class="w-full text-left text-xs border-collapse"></table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 5: EXECUTIVE REPORTS STUDIO ==================== -->
+      <section id="view-reports" class="hidden space-y-5 animate-fade-up">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-1.5" id="reportCategoryFilters">
+            <button data-cat="all" class="rep-cat-btn px-3 py-1.5 rounded-xl bg-brand-600 text-white text-xs font-semibold">Barchasi</button>
+            <button data-cat="Moliyaviy" class="rep-cat-btn px-3 py-1.5 rounded-xl surface-muted bg-white border border-slate-200 text-slate-600 text-xs font-semibold hover:border-brand-300">Moliyaviy</button>
+            <button data-cat="Savdo" class="rep-cat-btn px-3 py-1.5 rounded-xl surface-muted bg-white border border-slate-200 text-slate-600 text-xs font-semibold hover:border-brand-300">Savdo</button>
+            <button data-cat="Marketing" class="rep-cat-btn px-3 py-1.5 rounded-xl surface-muted bg-white border border-slate-200 text-slate-600 text-xs font-semibold hover:border-brand-300">Marketing</button>
+            <button data-cat="Prognoz" class="rep-cat-btn px-3 py-1.5 rounded-xl surface-muted bg-white border border-slate-200 text-slate-600 text-xs font-semibold hover:border-brand-300">Prognoz</button>
+          </div>
+          <div class="flex items-center gap-2">
+            <input id="reportSearchInput" type="text" placeholder="Hisobot qidirish..." class="surface-muted px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm focus:outline-none focus:border-brand-500">
+          </div>
+        </div>
+
+        <div id="reportsList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ==================== MODAL: COMMAND PALETTE (Ctrl+K) ==================== -->
+  <div id="cmdModal" class="fixed inset-0 z-50 hidden items-start justify-center pt-20 p-4 bg-slate-950/60 backdrop-blur-xs">
+    <div class="glass-card w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-fade-up">
+      <div class="flex items-center gap-2.5 px-4 py-3 border-b border-subtle border-slate-200">
+        <i data-lucide="search" class="w-4 h-4 text-brand-600"></i>
+        <input id="cmdInput" type="text" placeholder="Bo‘lim, hisobot yoki AI savol yozing..." class="flex-1 bg-transparent text-sm focus:outline-none text-main">
+        <button id="closeCmdBtn" class="text-[11px] font-mono px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">ESC</button>
+      </div>
+      <div id="cmdResults" class="max-h-72 overflow-y-auto custom-scroll p-2 space-y-1"></div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: NEW AI REPORT BUILDER ==================== -->
+  <div id="reportModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
+    <div class="glass-card w-full max-w-lg rounded-2xl p-6 shadow-2xl animate-fade-up">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl hero-blue-gradient flex items-center justify-center text-white">
+            <i data-lucide="file-plus-2" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="text-main text-base font-bold text-slate-900">Yangi korporativ AI hisobot yaratish</h3>
+            <p class="text-sub text-xs text-slate-500">Hisobot ulangan bazadagi so‘rov natijalaridan tuziladi va shu brauzerda saqlanadi.</p>
+          </div>
+        </div>
+        <button id="closeReportModalBtn" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="newReportForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-sub text-slate-700 mb-1.5">Hisobot sarlavhasi</label>
+          <input id="reportTitleInput" type="text" maxlength="240" required placeholder="Masalan: 2026 Q4 Rahbariyat uchun moliyaviy va KPI sharhi" class="surface-muted w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:border-brand-500">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-sub text-slate-700 mb-1.5">Yo‘nalish</label>
+            <select id="reportCategoryInput" class="surface-muted w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:border-brand-500">
+              <option value="Moliyaviy">Moliyaviy tahlil (P&L)</option>
+              <option value="Savdo">Savdo va KPI</option>
+              <option value="Marketing">Mijozlar va Retention</option>
+              <option value="Prognoz">AI Prognoz va Risk</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-sub text-slate-700 mb-1.5">Davr</label>
+            <select id="reportPeriodInput" class="surface-muted w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:border-brand-500">
+              <option value="Barcha davrlar">Barcha davrlar</option>
+              <option value="Noyabr 2026">Noyabr 2026</option>
+              <option value="Q4 2026">Q4 2026</option>
+              <option value="2026 Yillik">2026 Yillik</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <p id="reportStatus" role="status" class="text-sm text-main whitespace-pre-line"></p>
+        </div>
+        <div class="flex items-center justify-end gap-2.5 pt-2">
+          <button type="button" id="cancelReportModalBtn" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:bg-slate-100">Bekor qilish</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5 shadow-sm shadow-blue-600/25">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <span>AI bilan yaratish</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: EXECUTIVE REPORT VIEWER ==================== -->
+  <div id="previewModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/65 backdrop-blur-xs">
+    <div class="glass-card w-full max-w-3xl rounded-2xl p-6 shadow-2xl max-h-[90vh] flex flex-col animate-fade-up">
+      <div class="flex items-start justify-between gap-3 pb-4 border-b border-subtle border-slate-200">
+        <div>
+          <div class="flex items-center gap-2 mb-1.5">
+            <span id="previewBadge" class="inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-brand-50 text-brand-700 border border-brand-100"></span>
+            <span id="previewScheduleBadge" class="inline-block text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80"></span>
+          </div>
+          <h3 id="previewTitle" class="text-main text-lg sm:text-xl font-extrabold text-slate-900"></h3>
+          <p id="previewMeta" class="text-sub text-xs text-slate-500 mt-0.5"></p>
+        </div>
+        <button id="closePreviewModalBtn" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div id="previewBody" class="py-4 overflow-y-auto custom-scroll space-y-5 text-sm leading-relaxed"></div>
+      <div class="pt-4 border-t border-subtle border-slate-200 flex flex-wrap items-center justify-between gap-2.5">
+        <span class="text-[11px] text-sub text-slate-400">TabloAI Enterprise · Avtomatik audit qilingan</span>
+        <div class="flex items-center gap-2">
+          <button id="downloadHtmlReportBtn" class="px-3.5 py-2 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 text-xs font-semibold inline-flex items-center gap-1.5">
+            <i data-lucide="file-code" class="w-4 h-4"></i>
+            <span>HTML Hisobot</span>
+          </button>
+          <button id="downloadPreviewBtn" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-sm shadow-blue-600/25">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>Yuklab olish (.txt)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden items-center gap-2.5 px-4 py-3 rounded-xl bg-brand-950 text-white text-xs sm:text-sm font-medium shadow-xl border border-blue-400/30">
+    <i data-lucide="check-circle-2" class="w-4 h-4 text-sky-400 shrink-0"></i>
+    <span id="toastText"></span>
+  </div>
+
+  <script>
+    // ==================== STATE & ENTERPRISE DATA ====================
+
+
+    const state = {
+      currentView: 'dashboard',
+      period: 'quarter',
+      dept: 'all',
+      currency: 'USD',
+      chartMetric: 'revenue',
+      showConfidence: true,
+      darkMode: false,
+      reportCategoryFilter: 'all',
+      activeReportId: null,
+      uploadedCsv: null,
+      chatHistory: [
+        {
+          id: 'msg-welcome',
+          role: 'ai',
+          text: 'Assalomu alaykum! Men TabloAI — sun’iy intellekt yordamida korporativ ma’lumotlarni tahlil qilish, biznes dashboardlari va hisobotlar yaratish uchun ishlab chiqilgan  AI Data Analyst platformasiman.',
+          sql: null,
+          table: null,
+          chart: null,
+          execMeta: null
+        }
+      ],
+      databaseProfile: null,
+      sourceStatus: 'Baza profili yuklanmoqda…',
+      reports: [
+        {
+          id: 'rep-1',
+          title: 'Q4 2026 Korporativ Server va IT Tarmoq Savdosi Tahlili',
+          category: 'Moliyaviy',
+          period: 'Q4 2026',
+          schedule: 'Namuna',
+          date: '23.11.2026',
+          author: 'Hisobot namunasi',
+          kpis: [
+            { label: 'Choraklik IT Tushum', val: '$1.25M' },
+            { label: 'Sof foyda marjasi', val: '31.4%' },
+            { label: 'Server Klasterlari o‘sishi', val: '+24.6%' }
+          ],
+          chartData: { labels: ['Iyl', 'Avg', 'Sen', 'Okt', 'Noy'], values: [340, 385, 412, 448, 496] },
+          summary: 'HPE ProLiant, Dell PowerEdge va Cisco Catalyst uskunalari savdosi rejadagidan 14.8% yuqori bajarildi. Banklar va telekom modernizatsiyasi hisobiga sof marja 31.4% ga yetdi.',
+          highlights: [
+            'Server va saqlash tizimlari umumiy tushumning 61% qismini tashkil etdi (+24.6% YoY o‘sish).',
+            'Hamkorbank, SQB va Uztelecom eng yirik kontraktlar bilan yetakchilik qildi.',
+            'To‘g‘ridan-to‘g‘ri distribyutorlik shartnomalari orqali logistika xarajatlari 4.2% ga qisqartirildi.'
+          ],
+          recommendation: 'Dekabr oyida HPE MSA 2062 SAN massivlari va Cisco 9300 kommutatorlariga qo‘shimcha partiya buyurtma berish tavsiya etiladi.'
+        },
+        {
+          id: 'rep-2',
+          title: 'Banklar va Telekom Korporativ Klasterlari Uskunalar Yetkazib Berish Auditi',
+          category: 'Savdo',
+          period: 'Noyabr 2026',
+          schedule: 'Namuna',
+          date: '21.11.2026',
+          author: 'Hisobot namunasi',
+          kpis: [
+            { label: 'Yetakchi Segment', val: 'Bank & FinTech ($580K)' },
+            { label: 'Telekom Uskunalar', val: '$365K (+31%)' },
+            { label: 'Reja Bajarilishi', val: '112.4%' }
+          ],
+          chartData: { labels: ['Bank & FinTech', 'Telekom & Data', 'Sanoat IT', 'Davlat Tender'], values: [580, 365, 185, 118] },
+          summary: '15 ta yirik korporativ kontragent bo‘yicha shartnoma limitlari, yetkazib berish grafiki va to‘lov intizomi to‘liq tahlil qilindi.',
+          highlights: [
+            'ATB Hamkorbank va Kapitalbank IT klasterlari uchun 14 ta rack server yetkazib berildi.',
+            'O‘zbektelecom Bosh Data-Hub uchun 10G optik magistral infratuzilmasi to‘liq topshirildi.',
+            'Debitorlik muddati o‘tgan qarzdorlik ulushi 3.2% dan past darajada saqlanmoqda.'
+          ],
+          recommendation: 'Davlat tenderlari bo‘yicha 45 kunlik to‘lov kechiktirish limitlarini qat’iy nazorat qilish tavsiya etiladi.'
+        },
+        {
+          id: 'rep-3',
+          title: 'Mijozlar sodiqligi (Cohort Retention) va Churn xavfi',
+          category: 'Marketing',
+          period: 'Q4 2026',
+          schedule: 'Namuna',
+          date: '18.11.2026',
+          author: 'Hisobot namunasi',
+          kpis: [
+            { label: 'VIP Retention', val: '94.6%' },
+            { label: 'Xavf guruhi', val: '312 mijoz' },
+            { label: 'Kampaniya ROI', val: '4.2x' }
+          ],
+          chartData: { labels: ['Oy 1', 'Oy 2', 'Oy 3', 'Oy 4', 'Oy 5'], values: [86, 78, 73, 69, 66] },
+          summary: '12,480 ta faol mijozning xarid tarixi asosida ketish xavfi yuqori bo‘lgan segmentlar va LTV/CAC nisbati aniqlandi.',
+          highlights: [
+            'VIP korporativ mijozlarda saqlab qolish ko‘rsatkichi 94.6% darajasida.',
+            '60 kundan beri xarid qilmagan 312 ta o‘rta segment mijoz aniqlandi.',
+            'Shaxsiylashtirilgan chegirma kampaniyasi 4.2x ROI berdi.'
+          ],
+          recommendation: 'Xavf guruhidagi 312 ta mijozga avtomatik maxsus taklif va menejer qo‘ng‘irog‘ini ishga tushiring.'
+        },
+        {
+          id: 'rep-4',
+          title: '2027 Q1 Daromad prognozi va moliyaviy risklar xaritasi',
+          category: 'Prognoz',
+          period: '2026 Yillik',
+          schedule: 'Namuna',
+          date: '15.11.2026',
+          author: 'Hisobot namunasi',
+          kpis: [
+            { label: '2027 Q1 Prognoz', val: '$1.42M' },
+            { label: 'Model aniqligi', val: '96.8%' },
+            { label: 'Kutilgan o‘sish', val: '+16.5%' }
+          ],
+          chartData: { labels: ['Q2 26', 'Q3 26', 'Q4 26', 'Q1 27 (AI)', 'Q2 27 (AI)'], values: [1080, 1190, 1248, 1420, 1580] },
+          summary: 'Tarixiy mavsumiylik va joriy buyurtmalar portfeli asosida keyingi 2 chorak uchun 96.8% aniqlikdagi prognoz.',
+          highlights: [
+            'Bazaviy ssenariyda 2027 Q1 da +16.5% o‘sish kutilmoqda.',
+            'Valyuta tebranishlariga sezgir xarajatlar ulushi 12% ga tushirildi.',
+            'Raqamli xizmatlar yo‘nalishi eng yuqori marjali segment bo‘lib qoladi.'
+          ],
+          recommendation: 'Yanvar oyining birinchi haftasida asosiy yetkazib beruvchilar bilan yillik narxlarni fiksatsiya qiling.'
+        }
+      ]
+    };
+
+    const genericQuestions = [
+      'Ulangan bazada qaysi jadvallar bor?',
+      'Qaysi jadvallarda yozuvlar eng ko‘p?',
+      'Eng so‘nggi ma’lumotlar qaysi davrga tegishli?'
+    ];
+    let presetPromptsList = genericQuestions;
+    let presetRequestId = 0;
+
+    let charts = { revenue: null, segment: null, pnl: null, region: null, preview: null };
+    let activeChatRequest = null;
+    let activeReportRequest = null;
+    const reportStoragePrefix = 'tabloai.enterprise.report.';
+
+    // ==================== HELPERS ====================
+    function formatMoney(usdAmount) {
+      if (state.currency === 'UZS') {
+        const uzs = usdAmount;
+        if (uzs >= 1e9) return (uzs / 1e9).toFixed(2) + ' mlrd so‘m';
+        if (uzs >= 1e6) return (uzs / 1e6).toFixed(1) + ' mln so‘m';
+        return Math.round(uzs).toLocaleString('uz-UZ') + ' so‘m';
+      } else {
+        if (usdAmount >= 1e6) return '$' + (usdAmount / 1e6).toFixed(2) + 'M';
+        if (usdAmount >= 1e3) return '$' + Math.round(usdAmount / 1e3).toLocaleString('en-US') + 'K';
+        return '$' + Math.round(usdAmount).toLocaleString('en-US');
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastText').textContent = msg;
+      toast.classList.remove('hidden');
+      toast.classList.add('flex');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        toast.classList.add('hidden');
+        toast.classList.remove('flex');
+      }, 3000);
+    }
+
+    function copyText(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => showToast('SQL so‘rov nusxalandi')).catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); showToast('SQL so‘rov nusxalandi'); } catch (e) {}
+      document.body.removeChild(ta);
+    }
+
+    function sparklineSvg(points, color) {
+      const max = Math.max(...points);
+      const min = Math.min(...points);
+      const span = max - min || 1;
+      const coords = points.map((p, i) => {
+        const x = (i / (points.length - 1)) * 72;
+        const y = 24 - ((p - min) / span) * 20;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      }).join(' ');
+      return `<svg width="74" height="26" viewBox="0 0 74 26" class="shrink-0 overflow-visible" aria-hidden="true"><polyline fill="none" stroke="${color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" points="${coords}"/></svg>`;
+    }
+
+    // ==================== NAVIGATION ====================
+    const viewMeta = {
+      dashboard: { title: 'Boshqaruv paneli', subtitle: '1C IT uskunalar, Server klasterlari va Tarmoq infratuzilmasi savdosi tahlili' },
+      analyst: { title: 'AI Tahlilchi', subtitle: 'Tabiiy tilda savol bering — SQL, natija jadvali va grafik oling' },
+      sources: { title: 'Ma’lumotlar bazasi', subtitle: 'Ulangan baza tuzilishi va lokal CSV fayli' },
+      reports: { title: 'Hisobotlar', subtitle: 'Rahbariyat uchun avtomatik tayyorlangan korporativ hisobotlar' }
+    };
+
+    function switchView(viewName) {
+      state.currentView = viewName;
+      ['dashboard', 'analyst', 'sources', 'reports'].forEach(v => {
+        const el = document.getElementById('view-' + v);
+        if (el) el.classList.toggle('hidden', v !== viewName);
+      });
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === viewName);
+      });
+      document.getElementById('pageTitle').textContent = viewMeta[viewName].title;
+      document.getElementById('pageSubtitle').textContent = viewMeta[viewName].subtitle;
+
+      closeMobileSidebar();
+
+      if (viewName === 'dashboard') renderDashboard();
+      else if (viewName === 'analyst') { loadPresetPrompts(); loadSourceProfile(); }
+      else if (viewName === 'sources') loadSourceProfile();
+      else if (viewName === 'reports') renderReports();
+      window.lucide?.createIcons();
+    }
+
+    function openMobileSidebar() {
+      document.getElementById('sidebar').classList.remove('-translate-x-full');
+      document.getElementById('mobileBackdrop').classList.remove('hidden');
+    }
+
+    function closeMobileSidebar() {
+      document.getElementById('sidebar').classList.add('-translate-x-full');
+      document.getElementById('mobileBackdrop').classList.add('hidden');
+    }
+
+    // ==================== DASHBOARD RENDERING (LIVE 1C ERP INTEGRATION) ====================
+    let currentLiveStats = null;
+    let currentContracts = [];
+    let dashboardRequest = 0;
+
+    async function renderDashboard() {
+      const request = ++dashboardRequest;
+      const status = document.getElementById('dashboardStatus');
+      const results = document.getElementById('dashboardResults');
+      const exportButton = document.getElementById('exportDashboardBtn');
+      currentLiveStats = null;
+      currentContracts = [];
+      exportButton.disabled = true;
+      results.hidden = true;
+      status.textContent = '1C ma’lumotlari yuklanmoqda…';
+      let live;
+      try {
+        const params = new URLSearchParams({period: state.period, dept: state.dept, currency: state.currency});
+        const response = await fetch('/api/dashboard/live-stats?' + params);
+        if (!response.ok) throw new Error('dashboard unavailable');
+        live = await response.json();
+      } catch {
+        if (request === dashboardRequest) status.textContent = '1C panelini yuklab bo‘lmadi. Faol manbani tekshirib, Yangilash tugmasini bosing.';
+        return;
+      }
+      if (request !== dashboardRequest) return;
+      currentLiveStats = live;
+      currentContracts = live.top_contracts;
+      status.textContent = 'Oxirgi buyurtma sanasi ' + live.as_of + (live.currency === 'USD' ? '. Hisobot kursi 1 USD = ' + live.rate.toLocaleString('uz-UZ') + ' so‘m.' : '.');
+      results.hidden = false;
+      exportButton.disabled = false;
+      const cards = [
+        ['Buyurtmalar summasi', formatMoney(live.kpis.rev)],
+        ['Yalpi foyda', formatMoney(live.kpis.gross_profit)],
+        ['Yalpi marja', live.kpis.margin == null ? '—' : live.kpis.margin + '%'],
+        ['B2B buyurtmalar', live.kpis.orders.toLocaleString('uz-UZ') + ' ta']
+      ];
+      document.getElementById('kpiGrid').innerHTML = cards.map(([label, value]) =>
+        '<div class="glass-card rounded-2xl p-5"><span class="text-sm text-slate-500">' + label +
+        '</span><p class="text-main text-2xl font-bold mt-2">' + value + '</p></div>').join('');
+      // Render B2B Metrics (Debt & Stock)
+      renderB2BMetrics(live);
+
+      // Render Charts & Table
+      renderDashboardCharts(live);
+      renderDashTopTable();
+      window.lucide?.createIcons();
+    }
+
+    function formatStockUnits(byUnit) {
+      return Object.entries(byUnit || {}).sort(([a], [b]) => a.localeCompare(b))
+        .map(([unit, amount]) => `${Number(amount).toLocaleString('uz-UZ')} ${unit}`).join(' · ') || '—';
+    }
+
+    function renderB2BMetrics(live) {
+      if (!live || !live.debt || !live.stock) return;
+
+      // 1. Debitorlik
+      const totalDebtEl = document.getElementById('totalDebtLabel');
+      const overdueDebtEl = document.getElementById('overdueDebtLabel');
+      const collRateEl = document.getElementById('debtCollectionRateBadge');
+      if (totalDebtEl) totalDebtEl.textContent = formatMoney(live.debt.total_debt);
+      if (overdueDebtEl) overdueDebtEl.textContent = formatMoney(live.debt.overdue_debt);
+      if (collRateEl) collRateEl.textContent = `Undiruv: ${live.debt.collection_rate}%`;
+
+      const riskBadge = (r) => {
+        if (r === 'critical') return '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">Kritik</span>';
+        if (r === 'warning') return '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">Diqqat</span>';
+        return '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Normal</span>';
+      };
+
+      const debtorsTbody = document.getElementById('debtorsTableBody');
+      if (debtorsTbody && live.debt.top_debtors) {
+        debtorsTbody.innerHTML = live.debt.top_debtors.map(d => `
+          <tr class="hover:bg-slate-50/70 transition-colors">
+            <td class="px-3 py-2 font-semibold text-main text-slate-900 truncate max-w-[180px]" title="${escapeHtml(d.client)}">${escapeHtml(d.client)}</td>
+            <td class="px-3 py-2 text-right font-bold text-main text-slate-900">${formatMoney(d.debt)}</td>
+            <td class="px-3 py-2 text-right font-medium text-amber-600">${d.days} kun</td>
+            <td class="px-3 py-2 text-center">${riskBadge(d.risk)}</td>
+          </tr>
+        `).join('');
+      }
+
+      // 2. Ombor
+      const stockValEl = document.getElementById('totalStockValueLabel');
+      const stockUnitsEl = document.getElementById('stockUnitsBadge');
+      if (stockValEl) stockValEl.textContent = formatMoney(live.stock.total_value);
+      if (stockUnitsEl) stockUnitsEl.textContent = formatStockUnits(live.stock.by_unit);
+
+      const whList = document.getElementById('warehousesStockList');
+      if (whList && live.stock.warehouses) {
+        const maxVal = Math.max(...live.stock.warehouses.map(w => w.value)) || 1;
+        whList.innerHTML = live.stock.warehouses.map(w => `
+          <div class="p-2.5 rounded-xl surface-muted bg-slate-50/90 border border-slate-200/60">
+            <div class="flex items-center justify-between text-xs mb-1">
+              <span class="font-bold text-main text-slate-900 truncate" title="${escapeHtml(w.name)}">${escapeHtml(w.name)}</span>
+              <span class="font-extrabold text-brand-700 dark:text-sky-300">${formatMoney(w.value)}</span>
+            </div>
+            <div class="flex items-center justify-between text-[11px] text-sub text-slate-500 mb-1.5">
+              <span>Qoldiq: ${escapeHtml(formatStockUnits(w.by_unit))}</span>
+              <span class="font-mono text-[10px] text-slate-400">${escapeHtml(w.code)}</span>
+            </div>
+            <div class="w-full h-1.5 rounded-full bg-slate-200/70 dark:bg-slate-800 overflow-hidden">
+              <div class="h-1.5 rounded-full bg-brand-600" style="width:${Math.round(w.value / maxVal * 100)}%"></div>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function renderDashTopTable() {
+      const q = (document.getElementById('dashTableSearch').value || '').toLowerCase().trim();
+      const sortBy = document.getElementById('dashTableSort').value;
+
+      const filtered = currentContracts
+        .filter(c => c.name.toLowerCase().includes(q) || c.segment.toLowerCase().includes(q) || c.region.toLowerCase().includes(q))
+        .sort((a, b) => b[sortBy] - a[sortBy]);
+
+      document.getElementById('dashTopTableBody').innerHTML = filtered.map(c => `
+        <tr class="hover:bg-blue-50/50 transition-colors">
+          <td class="px-4 py-3 font-bold text-main text-slate-900">${escapeHtml(c.name)}</td>
+          <td class="px-4 py-3 text-sub text-slate-600">${escapeHtml(c.segment)}</td>
+          <td class="px-4 py-3 text-sub text-slate-600">${escapeHtml(c.region)}</td>
+          <td class="px-4 py-3 text-right font-bold text-main text-slate-900">${formatMoney(c.revenue)}</td>
+          <td class="px-4 py-3 text-right font-semibold text-brand-700 dark:text-sky-300">${c.margin}%</td>
+          <td class="px-4 py-3 text-right font-bold ${c.growth ? (c.growth >= 0 ? 'text-emerald-600' : 'text-amber-600') : 'text-emerald-600'}">${c.orders_count ? c.orders_count + ' ta buyurtma' : (c.growth >= 0 ? '+' : '') + c.growth + '%'}</td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${c.status === 'Diqqat' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">${escapeHtml(c.status)}</span>
+          </td>
+          <td class="px-4 py-3 text-right">
+            <button data-contract-name="${escapeHtml(c.name)}" class="contract-ai-btn text-[11px] font-semibold text-brand-600 hover:text-brand-800 inline-flex items-center gap-1">
+              <i data-lucide="sparkles" class="w-3 h-3"></i>AI Tahlil
+            </button>
+          </td>
+        </tr>
+      `).join('');
+
+      document.querySelectorAll('.contract-ai-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          switchView('analyst');
+          submitUserMessage(`${btn.dataset.contractName} shartnomasi bo‘yicha daromad, marja va o‘sish imkoniyatlarini tahlil qilib ber`);
+        });
+      });
+      window.lucide?.createIcons();
+    }
+
+    function renderDashboardCharts(live) {
+      if (!window.Chart) return;
+      const gridColor = state.darkMode ? 'rgba(148, 163, 184, 0.14)' : 'rgba(148, 163, 184, 0.22)';
+      const tickColor = state.darkMode ? '#94A3B8' : '#64748B';
+
+      // --- Chart 1: Multi-metric + Confidence Band ---
+      const revCtx = document.getElementById('revenueChart').getContext('2d');
+      if (charts.revenue) charts.revenue.destroy();
+
+      const base = live.trend;
+      const metricObj = base[state.chartMetric];
+      const isMoney = state.chartMetric !== 'orders';
+      const fmtVal = (v) => isMoney ? formatMoney(v) : v.toLocaleString('en-US') + ' ta';
+
+      const actualSeries = metricObj.actual;
+      const forecastSeries = metricObj.forecast;
+
+      const gradBlue = revCtx.createLinearGradient(0, 0, 0, 280);
+      gradBlue.addColorStop(0, 'rgba(37, 99, 235, 0.26)');
+      gradBlue.addColorStop(1, 'rgba(37, 99, 235, 0.01)');
+
+      const datasets = [
+        {
+          label: 'Haqiqiy',
+          data: actualSeries,
+          borderColor: '#2563EB',
+          backgroundColor: gradBlue,
+          borderWidth: 3,
+          pointBackgroundColor: '#FFFFFF',
+          pointBorderColor: '#2563EB',
+          pointBorderWidth: 2.5,
+          pointRadius: 4.5,
+          fill: true,
+          tension: 0.35
+        },
+        {
+          label: 'O‘rtacha sur’at bo‘yicha prognoz',
+          data: forecastSeries,
+          borderColor: '#38BDF8',
+          borderWidth: 2.5,
+          borderDash: [6, 5],
+          pointBackgroundColor: '#38BDF8',
+          pointRadius: 3.5,
+          fill: false,
+          tension: 0.35
+        }
+      ];
+
+      if (!state.showConfidence) datasets.pop();
+
+      charts.revenue = new Chart(revCtx, {
+        type: 'line',
+        data: { labels: base.labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#071430',
+              titleColor: '#FFFFFF',
+              bodyColor: '#DBEAFE',
+              padding: 12,
+              cornerRadius: 10,
+              callbacks: {
+                label: (ctx) => ctx.raw !== null ? `${ctx.dataset.label}: ${fmtVal(ctx.raw)}` : ''
+              }
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: tickColor, font: { size: 11 } } },
+            y: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 }, callback: (v) => fmtVal(v) } }
+          }
+        }
+      });
+
+      // --- Chart 2: Segment Doughnut (Clean Full-Text Legend) ---
+      const segCtx = document.getElementById('segmentChart').getContext('2d');
+      if (charts.segment) charts.segment.destroy();
+
+      const segments = live.segments.map(s => ({
+        label: s.name,
+        val: s.share,
+        amount: s.amount,
+        color: s.color
+      }));
+
+      charts.segment = new Chart(segCtx, {
+        type: 'doughnut',
+        data: {
+          labels: segments.map(s => s.label),
+          datasets: [{
+            data: segments.map(s => s.val),
+            backgroundColor: segments.map(s => s.color),
+            borderWidth: 2,
+            borderColor: state.darkMode ? '#0C1A36' : '#FFFFFF',
+            hoverOffset: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '68%',
+          plugins: {
+            legend: { display: false },
+            tooltip: { backgroundColor: '#071430', padding: 10, cornerRadius: 10, callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw}%` } }
+          }
+        }
+      });
+
+      document.getElementById('segmentLegend').innerHTML = segments.map(s => `
+        <div class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg surface-muted bg-slate-50/90">
+          <span class="flex items-center gap-2 text-sub text-slate-700 font-medium truncate max-w-[200px]" title="${escapeHtml(s.label)}">
+            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${s.color}"></span>
+            <span class="truncate">${escapeHtml(s.label)}</span>
+          </span>
+          <span class="flex items-center gap-2 shrink-0">
+            <span class="text-[11px] text-sub text-slate-400">${formatMoney(s.amount)}</span>
+            <span class="font-bold text-main text-slate-900 w-9 text-right">${s.val}%</span>
+          </span>
+        </div>
+      `).join('');
+
+      // --- Chart 3: P&L Stacked Cost vs Profit ---
+      const pnlCtx = document.getElementById('pnlChart').getContext('2d');
+      if (charts.pnl) charts.pnl.destroy();
+
+      const pnlData = {
+        labels: live.pnl.labels,
+        netProfit: live.pnl.net_profit,
+        opex: live.pnl.opex,
+        cogs: live.pnl.cogs
+      };
+
+      charts.pnl = new Chart(pnlCtx, {
+        type: 'bar',
+        data: {
+          labels: pnlData.labels,
+          datasets: [
+            { label: 'Operatsion foyda', data: pnlData.netProfit, backgroundColor: '#1D4ED8', borderRadius: 4 },
+            { label: 'Operatsion xarajatlar', data: pnlData.opex, backgroundColor: '#60A5FA', borderRadius: 4 },
+            { label: 'Tannarx (COGS)', data: pnlData.cogs, backgroundColor: '#DBEAFE', borderRadius: 4 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 }, color: tickColor } },
+            tooltip: { backgroundColor: '#071430', padding: 10, cornerRadius: 10, callbacks: { label: (ctx) => `${ctx.dataset.label}: ${formatMoney(ctx.raw)}` } }
+          },
+          scales: {
+            x: { stacked: true, grid: { display: false }, ticks: { color: tickColor, font: { size: 11 } } },
+            y: { stacked: true, grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 10 }, callback: (v) => formatMoney(v) } }
+          }
+        }
+      });
+
+      // --- Chart 4: Regional Horizontal Bar ---
+      const regCtx = document.getElementById('regionChart').getContext('2d');
+      if (charts.region) charts.region.destroy();
+
+      const regLabels = live.regions.map(r => r.region);
+      const regValues = live.regions.map(r => r.amount);
+
+      charts.region = new Chart(regCtx, {
+        type: 'bar',
+        data: {
+          labels: regLabels,
+          datasets: [{
+            label: 'Savdo hajmi',
+            data: regValues,
+            backgroundColor: ['#1D4ED8', '#2563EB', '#3B82F6', '#60A5FA', '#93C5FD'],
+            borderRadius: 7,
+            barThickness: 20
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { backgroundColor: '#071430', padding: 10, cornerRadius: 10, callbacks: { label: (ctx) => `Savdo: ${formatMoney(ctx.raw)}` } }
+          },
+          scales: {
+            x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 10 }, callback: (v) => formatMoney(v) } },
+            y: { grid: { display: false }, ticks: { color: tickColor, font: { size: 11, weight: '600' } } }
+          }
+        }
+      });
+    }
+
+    // ==================== AI ANALYST STUDIO ====================
+    async function loadPresetPrompts() {
+      const requestId = ++presetRequestId;
+      let questions = genericQuestions;
+      try {
+        const res = await fetch('/api/query/presets');
+        if (res.ok) {
+          const data = await res.json();
+          const supplied = Array.isArray(data.questions) ? data.questions.filter(q => typeof q === 'string' && q.trim()) : [];
+          if (supplied.length) questions = supplied;
+        }
+      } catch { /* Generic questions work for an arbitrary source. */ }
+      if (requestId !== presetRequestId) return;
+      presetPromptsList = questions;
+      renderPresetPrompts();
+    }
+
+    function renderPresetPrompts() {
+      document.getElementById('aiInsightsList').innerHTML = presetPromptsList.slice(0,3).map(prompt =>
+        '<button class="insight-ask-btn text-left text-sm py-2 text-brand-700" data-insight-prompt="' +
+        escapeHtml(prompt) + '">' + escapeHtml(prompt) + '</button>').join('');
+
+      document.querySelectorAll('.insight-ask-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          switchView('analyst');
+          submitUserMessage(btn.dataset.insightPrompt);
+        });
+      });
+
+      const el = document.getElementById('presetPrompts');
+      if (!el) return;
+      el.innerHTML = presetPromptsList.map((p, idx) => `
+        <button class="preset-prompt-btn w-full text-left p-3 rounded-xl surface-muted bg-slate-50 hover:bg-brand-50 border border-slate-200/80 hover:border-brand-300 text-xs text-main text-slate-700 font-medium transition-all flex items-start justify-between gap-2.5 group shadow-xs">
+          <div class="flex items-start gap-2.5">
+            <span class="w-5 h-5 rounded-md bg-white dark:bg-slate-800 border border-slate-200 text-brand-600 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">${idx + 1}</span>
+            <span class="leading-relaxed font-medium">${escapeHtml(p)}</span>
+          </div>
+          <i data-lucide="arrow-up-right" class="w-4 h-4 text-slate-400 group-hover:text-brand-600 shrink-0 mt-0.5 transition-colors"></i>
+        </button>
+      `).join('');
+
+      document.querySelectorAll('.preset-prompt-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const textEl = btn.querySelector('.leading-relaxed');
+          if (textEl) submitUserMessage(textEl.textContent.trim());
+        });
+      });
+      window.lucide?.createIcons();
+    }
+
+    const chatChartNames = {
+      bar: 'Ustunli diagramma', horizontal_bar: 'Gorizontal diagramma',
+      donut: 'Halqali diagramma', line: 'Chiziqli diagramma', area: 'Maydonli diagramma'
+    };
+
+    function renderChatChart(chart) {
+      if (!chart || !Object.hasOwn(chatChartNames, chart.chart_type)) return '';
+      const type = chart.chart_type;
+      const rows = Array.isArray(chart.data) ? chart.data : [];
+      const points = rows.map(row => {
+        const label = row[chart.x_axis];
+        const value = row[chart.y_axis];
+        const numeric = typeof value === 'number' || (typeof value === 'string' && value.trim() !== '');
+        return { label: String(label ?? '—'), value: value == null ? null : numeric ? Number(value) : NaN, raw: value };
+      });
+      const measured = points.filter(point => point.value !== null);
+      if (!measured.length || measured.some(point => !Number.isFinite(point.value))) return '';
+
+      const title = escapeHtml(chart.title || chart.y_axis);
+      const pointTitle = point => `<title>${escapeHtml(point.label)} · ${escapeHtml(chart.y_axis)} = ${escapeHtml(point.raw)}</title>`;
+      const colors = ['#2563eb', '#0891b2', '#7c3aed', '#d97706', '#16a34a', '#be185d', '#475569', '#4338ca'];
+      let figure;
+      if (type === 'donut') {
+        const total = points.reduce((sum, point) => sum + point.value, 0);
+        if (measured.length !== points.length || !Number.isFinite(total) || total <= 0 || points.some(point => point.value < 0)) return '';
+        let offset = 0;
+        const arcs = points.map((point, index) => {
+          const share = point.value / total * 100;
+          const arc = `<circle cx="80" cy="80" r="55" fill="none" stroke="${colors[index % colors.length]}" stroke-width="26" pathLength="100" stroke-dasharray="${share} ${100 - share}" stroke-dashoffset="${-offset}">${pointTitle(point)}</circle>`;
+          offset += share;
+          return arc;
+        }).join('');
+        const legend = points.map((point, index) => `<li><i style="background:${colors[index % colors.length]}"></i>${escapeHtml(point.label)} · ${escapeHtml(point.raw)}</li>`).join('');
+        figure = `<div class="chat-donut"><svg viewBox="0 0 160 160" role="img" aria-label="${title}"><g transform="rotate(-90 80 80)">${arcs}</g></svg><ul>${legend}</ul></div>`;
+      } else {
+        const horizontal = type === 'horizontal_bar';
+        const width = 640;
+        const height = horizontal ? Math.max(135, points.length * 24 + 38) : 228;
+        const left = horizontal ? 158 : 62;
+        const right = width - 18;
+        const top = 12;
+        const bottom = height - 32;
+        const min = measured.reduce((value, p) => Math.min(value, p.value), 0);
+        const max = measured.reduce((value, p) => Math.max(value, p.value), 0);
+        const span = max - min || 1;
+        const scale = value => horizontal ? left + (value - min) / span * (right - left)
+                                          : bottom - (value - min) / span * (bottom - top);
+        const step = (horizontal ? bottom - top : right - left) / points.length;
+        const center = index => (horizontal ? top : left) + (index + 0.5) * step;
+        const zero = scale(0);
+        const axis = horizontal ? `<path d="M${zero} ${top} V${bottom}"/>` : `<path d="M${left} ${zero} H${right}"/>`;
+        const short = new Intl.NumberFormat('uz-UZ', { notation: 'compact', maximumFractionDigits: 2 });
+        const tickValues = max === min ? [0] : [min, (min + max) / 2, max];
+        const ticks = tickValues.map(value => horizontal
+          ? `<text x="${scale(value)}" y="${bottom + 19}" text-anchor="middle">${short.format(value)}</text>`
+          : `<text x="${left - 8}" y="${scale(value) + 4}" text-anchor="end">${short.format(value)}</text>`).join('');
+        const labels = points.map((point, index) => {
+          if (!horizontal && index % Math.ceil(points.length / 6) !== 0) return '';
+          const limit = horizontal ? 22 : 12;
+          const label = point.label.length > limit ? point.label.slice(0, limit - 1) + '…' : point.label;
+          return `<text x="${horizontal ? left - 8 : center(index)}" y="${horizontal ? center(index) + 4 : bottom + 20}" text-anchor="${horizontal ? 'end' : 'middle'}">${escapeHtml(label)}</text>`;
+        }).join('');
+        let marks;
+        if (type === 'line' || type === 'area') {
+          const segments = [];
+          points.forEach((point, index) => {
+            if (point.value === null) return;
+            if (index === 0 || points[index - 1].value === null) segments.push([]);
+            segments[segments.length - 1].push({ point, x: center(index), y: scale(point.value) });
+          });
+          marks = segments.map(segment => {
+            const path = segment.map(({ x, y }, index) => `${index ? 'L' : 'M'}${x} ${y}`).join(' ');
+            const fill = type === 'area' ? `<path d="${path} L${segment[segment.length - 1].x} ${zero} H${segment[0].x} Z" fill="#2563eb" opacity=".16"/>` : '';
+            const dots = segment.map(({ point, x, y }) => `<circle cx="${x}" cy="${y}" r="3" fill="#2563eb">${pointTitle(point)}</circle>`).join('');
+            return fill + `<path d="${path}" stroke="#2563eb" stroke-width="2.5" fill="none"/>` + dots;
+          }).join('');
+        } else {
+          const thickness = Math.min(36, step * 0.7);
+          marks = points.map((point, index) => {
+            if (point.value === null) return '';
+            const end = scale(point.value);
+            const start = Math.min(end, zero);
+            const length = Math.abs(end - zero);
+            const category = center(index) - thickness / 2;
+            return `<rect x="${horizontal ? start : category}" y="${horizontal ? category : start}" width="${horizontal ? length : thickness}" height="${horizontal ? thickness : length}" fill="#2563eb">${pointTitle(point)}</rect>`;
+          }).join('');
+        }
+        figure = `<div class="chat-plot-scroll"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${title}"><g stroke="#94a3b8">${axis}</g><g fill="currentColor" font-size="11">${ticks}${labels}</g>${marks}</svg></div>`;
+      }
+      return `<figure class="chat-figure" data-chart-type="${type}"><figcaption><strong>${title}</strong><small>${chatChartNames[type]}</small></figcaption>${figure}</figure>`;
+    }
+
+    function renderEvidence(result) {
+      const rows = Array.isArray(result.rows) ? result.rows : [];
+      const columns = result.columns?.length ? result.columns : Object.keys(rows[0] || {});
+      if (!columns.length && !result.sql_query) return '';
+      const cell = value => escapeHtml(value == null ? '—' : typeof value === 'object' ? JSON.stringify(value) : value);
+      const header = columns.map(column => `<th scope="col">${escapeHtml(column)}</th>`).join('');
+      const body = rows.map(row => `<tr>${columns.map(column => `<td>${cell(row[column])}</td>`).join('')}</tr>`).join('');
+      return `<details class="chat-evidence"><summary>${escapeHtml(result.title || 'Hisoblangan ma’lumotlar')} · ${rows.length} qator${result.is_truncated ? ' · qisqartirilgan' : ''}</summary>
+        <div class="chat-table-scroll"><table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table></div>
+        ${result.sql_query ? `<pre><code>${escapeHtml(result.sql_query)}</code></pre>` : ''}</details>`;
+    }
+
+    function renderChat() {
+      const container = document.getElementById('chatMessages');
+      container.innerHTML = state.chatHistory.map((msg, idx) => {
+        if (msg.role === 'user') {
+          return `<div class="flex justify-end animate-fade-up"><div class="max-w-[85%] rounded-2xl rounded-tr-sm bg-brand-600 text-white px-4 py-3 text-sm">${escapeHtml(msg.text)}</div></div>`;
+        }
+        return `<div class="flex items-start gap-3 animate-fade-up">
+          <div class="w-8 h-8 rounded-xl hero-blue-gradient text-white flex items-center justify-center shrink-0"><i data-lucide="sparkles" class="w-4 h-4"></i></div>
+          <div class="surface-muted bg-slate-50 border border-slate-200/80 rounded-2xl rounded-tl-sm p-4 text-sm text-main text-slate-800 space-y-3 flex-1 min-w-0">
+            ${msg.execMeta ? `<div class="flex items-center justify-between text-[11px] font-semibold text-brand-600"><span>${escapeHtml(msg.execMeta)}</span>
+              ${msg.savable ? `<button type="button" data-save-rep-idx="${idx}" class="px-2 py-1 rounded bg-brand-50">${msg.reportId ? 'Hisobotni ochish' : 'Shu brauzerda saqlash'}</button>` : ''}</div>` : ''}
+            <p class="leading-relaxed whitespace-pre-line">${escapeHtml(msg.text)}</p>
+            ${(msg.warnings || []).map(warning => `<p class="text-xs">${escapeHtml(warning)}</p>`).join('')}
+            ${renderChatChart(msg.chart)}
+            ${(msg.results || []).map(renderEvidence).join('')}
+          </div></div>`;
+      }).join('');
+      if (activeChatRequest) container.insertAdjacentHTML('beforeend', '<p class="text-xs text-brand-600 pl-11" role="status">Javob tayyorlanmoqda…</p>');
+      document.querySelector('#chatForm button[type="submit"]').disabled = Boolean(activeChatRequest);
+      container.scrollTop = container.scrollHeight;
+      window.lucide?.createIcons();
+    }
+
+    document.getElementById('chatMessages').addEventListener('click', event => {
+      const button = event.target.closest('[data-save-rep-idx]');
+      if (!button) return;
+      const msg = state.chatHistory[Number(button.dataset.saveRepIdx)];
+      if (!msg?.savable) return;
+      if (msg.reportId) { openPreviewModal(msg.reportId); return; }
+      msg.reportId = saveReport({
+        title: msg.question, category: 'Tahlil', period: msg.localFile ? 'Lokal CSV' : 'Suhbat natijasi',
+        summary: msg.text, chatChart: msg.chart, results: msg.results, highlights: msg.warnings || []
+      });
+      renderChat();
+    });
+
+    async function requestAnalysis(prompt, history, signal) {
+      const res = await fetch('/api/query/chat', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, signal,
+        body: JSON.stringify({ prompt, history })
+      });
+      if (!res.ok) throw new Error(`Tahlil xizmati so‘rovni bajara olmadi (HTTP ${res.status}). Qayta urinib ko‘ring.`);
+      const data = await res.json();
+      const answer = data.explanation || data.summary_text;
+      if (typeof answer !== 'string' || !answer.trim()) throw new Error('Tahlil xizmatidan javob matni kelmadi. Qayta urinib ko‘ring.');
+      const raw = data.query_results?.length ? data.query_results : data.sql_query || data.rows?.length ? [data] : [];
+      const results = raw.map(({ id, title, columns, rows, sql_query, is_truncated }) => ({ id, title, columns, rows, sql_query, is_truncated }));
+      const reference = data.chart?.query_id;
+      if (reference && !results.some(result => result.id === reference)) {
+        data.chart = null;
+        data.validation_warnings = [...(data.validation_warnings || []), 'Diagrammaning hisoblash manbasi topilmadi.'];
+      }
+      return { data, answer, results };
+    }
+
+    async function submitUserMessage(text) {
+      const prompt = text.trim();
+      if (!prompt) return;
+      if (activeChatRequest) { showToast('Joriy savolga javob tayyorlanmoqda'); return; }
+      const priorMessages = state.chatHistory.slice(1);
+      const request = new AbortController();
+      activeChatRequest = request;
+      const question = { role: 'user', text: prompt };
+      state.chatHistory.push(question);
+      renderChat();
+
+      try {
+        if (pendingSourceProfile) await pendingSourceProfile;
+        if (request.signal.aborted) return;
+        const source = state.databaseProfile?.connection_fingerprint || state.databaseProfile?.database_name;
+        question.source = source;
+        const history = priorMessages.filter(msg => !msg.failed && !msg.localFile && msg.source === source)
+          .slice(-8).map(msg => ({ role: msg.role === 'user' ? 'user' : 'assistant', content: msg.text,
+            ...(msg.clarification ? { clarification: true } : {}) }));
+        const { data, answer, results } = await requestAnalysis(prompt, history, request.signal);
+        if (request.signal.aborted) return;
+        const statusText = { partial: 'Qisman yakunlandi', clarification: 'Aniqlashtirish kerak' };
+        const clarification = data.agent_status === 'clarification' || data.error === 'clarification_required';
+        question.failed = !data.success && !clarification && data.agent_status !== 'partial';
+        const execMeta = clarification ? statusText.clarification : statusText[data.agent_status] || (data.success ? 'TabloAI' : 'Tahlil xabari');
+        state.chatHistory.push({
+          role: 'ai', source, clarification, failed: question.failed, question: prompt, text: answer, execMeta, results, warnings: data.validation_warnings,
+          chart: data.success ? data.chart : null, savable: Boolean(data.success && results.length)
+        });
+      } catch (error) {
+        if (request.signal.aborted) return;
+        const message = error instanceof TypeError || error instanceof SyntaxError
+          ? 'Tahlil xizmatiga ulanib bo‘lmadi. Backend ulanishini tekshirib, savolni qayta yuboring.'
+          : error.message;
+        question.failed = true;
+        state.chatHistory.push({ role: 'ai', text: message, failed: true });
+      } finally {
+        if (activeChatRequest === request) {
+          activeChatRequest = null;
+          renderChat();
+        }
+      }
+    }
+
+    // ==================== DATA SOURCES & CSV ====================
+    let pendingSourceProfile = null;
+    function loadSourceProfile() {
+      if (!pendingSourceProfile) {
+        pendingSourceProfile = readSourceProfile().finally(() => { pendingSourceProfile = null; });
+      }
+      return pendingSourceProfile;
+    }
+
+    async function readSourceProfile() {
+      state.sourceStatus = 'Baza profili yuklanmoqda…';
+      state.databaseProfile = null;
+      renderSources();
+      try {
+        const res = await fetch('/api/database/understanding');
+        if (!res.ok) throw new Error();
+        const profile = await res.json();
+        if (!Array.isArray(profile.tables)) throw new Error();
+        state.databaseProfile = profile;
+        state.sourceStatus = '';
+      } catch {
+        state.sourceStatus = 'Baza profilini olib bo‘lmadi. Ulanishni tekshiring.';
+      }
+      renderSources();
+    }
+
+    function renderSources() {
+      const profile = state.databaseProfile;
+      const csv = state.uploadedCsv;
+      const connected = Boolean(profile?.database_name || profile?.table_count);
+      const sourceLabel = profile?.database_name || 'Ulangan baza';
+      const condition = { partial: ' · profil qisman yuklangan', empty: ' · jadvallar topilmadi' };
+      document.getElementById('chatSourceLabel').textContent = profile
+        ? `${sourceLabel}${condition[profile.status] || ''}` : state.sourceStatus;
+      const sourceCount = Number(connected) + Number(Boolean(csv));
+      document.getElementById('sidebarSourcesCount').textContent = state.sourceStatus && !csv ? '—' : sourceCount;
+      const details = profile ? `
+        <p>${escapeHtml(profile.dialect || '')} · ${escapeHtml(profile.table_count)} ta jadval · ${escapeHtml(profile.column_count)} ta ustun</p>
+        ${profile.status === 'partial' ? '<p>Baza tuzilishi qisman o‘rganilgan.</p>' : ''}
+        ${profile.tables.length ? `<details><summary>Jadvallar</summary><ul>${profile.tables.map(table => `<li>${escapeHtml(table.name)} · ${escapeHtml(table.column_count)} ustun</li>`).join('')}</ul></details>` : ''}
+        ${(profile.warnings || []).map(warning => `<p>${escapeHtml(warning)}</p>`).join('')}
+      ` : `<p role="status">${escapeHtml(state.sourceStatus)}</p>`;
+      document.getElementById('sourcesGrid').innerHTML = `
+        <div class="glass-card rounded-2xl p-5 space-y-3 text-sm">
+          <h3 class="text-main font-bold">${escapeHtml(profile?.database_name || 'Baza ulanishi')}</h3>
+          ${details}
+          <button id="reloadSourceProfile" type="button" class="text-brand-700 font-semibold">Baza profilini qayta o‘qish</button>
+        </div>
+        ${csv ? `<div class="glass-card rounded-2xl p-5 space-y-3 text-sm"><h3 class="text-main font-bold">${escapeHtml(csv.name)}</h3>
+          <p>Lokal CSV · ${csv.rows.length} qator · ${csv.headers.length} ustun</p></div>` : ''}
+      `;
+      document.getElementById('reloadSourceProfile').addEventListener('click', loadSourceProfile);
+    }
+
+    function parseCsvText(name, text) {
+      const records = [];
+      let record = [], field = '', quoted = false;
+      for (let index = 0; index < text.length; index++) {
+        const ch = text[index];
+        if (ch === '"') {
+          if (quoted && text[index + 1] === '"') { field += '"'; index++; }
+          else quoted = !quoted;
+        } else if (!quoted && ch === ',') {
+          record.push(field.trim()); field = '';
+        } else if (!quoted && (ch === '\r' || ch === '\n')) {
+          if (ch === '\r' && text[index + 1] === '\n') index++;
+          if (record.length || field.trim()) records.push([...record, field.trim()]);
+          record = []; field = '';
+        } else field += ch;
+      }
+      if (record.length || field.trim()) records.push([...record, field.trim()]);
+      if (quoted) { showToast('CSV faylida yopilmagan qo‘shtirnoq bor'); return; }
+      const [headers, ...rows] = records;
+      if (!headers || !rows.length) { showToast('CSV faylda sarlavha va kamida bitta yozuv bo‘lishi kerak'); return; }
+      if (headers.some(header => !header) || new Set(headers).size !== headers.length || rows.some(row => row.length !== headers.length)) {
+        showToast('CSV sarlavhalari va qatorlardagi ustunlar sonini tekshiring'); return;
+      }
+      state.uploadedCsv = { name, headers, rows };
+
+      renderSources();
+      renderCsvPreview();
+      showToast(`"${name}" yuklandi (${rows.length} qator)`);
+    }
+
+    function renderCsvPreview() {
+      const sec = document.getElementById('csvPreviewSection');
+      if (!state.uploadedCsv) { sec.classList.add('hidden'); return; }
+      sec.classList.remove('hidden');
+      document.getElementById('csvPreviewTitle').textContent = state.uploadedCsv.name;
+      document.getElementById('csvPreviewMeta').textContent = `${state.uploadedCsv.rows.length} qator · ${state.uploadedCsv.headers.length} ustun`;
+
+      const thead = `<thead class="bg-brand-50/90 text-brand-900"><tr>${state.uploadedCsv.headers.map(h => `<th class="px-3.5 py-2.5 font-bold">${escapeHtml(h)}</th>`).join('')}</tr></thead>`;
+      const tbody = `<tbody class="divide-y divide-slate-100">${state.uploadedCsv.rows.slice(0, 8).map(r => `<tr class="hover:bg-blue-50/40">${r.map(c => `<td class="px-3.5 py-2 text-main text-slate-700">${escapeHtml(c)}</td>`).join('')}</tr>`).join('')}</tbody>`;
+      document.getElementById('csvPreviewTable').innerHTML = thead + tbody;
+    }
+
+    // ==================== EXECUTIVE REPORTS STUDIO ====================
+    function saveReport(fields) {
+      const now = new Date();
+      const id = 'rep-' + (window.crypto?.randomUUID?.() || (Date.now() + '-' + Math.random().toString(36).slice(2)));
+      const report = {
+        ...fields, id, createdAt: now.toISOString(), date: now.toLocaleDateString('uz-UZ'),
+        author: 'TabloAI', schedule: 'Shu brauzerda saqlangan', kpis: [], recommendation: ''
+      };
+      try {
+        localStorage.setItem(reportStoragePrefix + id, JSON.stringify(report));
+        showToast('Hisobot shu brauzerda saqlandi');
+      } catch {
+        report.schedule = 'Faqat shu seansda';
+        showToast('Brauzer xotirasiga yozilmadi. Hisobotni yuklab olishingiz mumkin.');
+      }
+      state.reports.unshift(report);
+      document.getElementById('sidebarReportsCount').textContent = state.reports.length;
+      return id;
+    }
+
+    function restoreReports() {
+      const saved = [];
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (!key?.startsWith(reportStoragePrefix)) continue;
+          try {
+            const report = JSON.parse(localStorage.getItem(key));
+            if (key === reportStoragePrefix + report.id && /^rep-[a-z0-9-]+$/i.test(report.id) &&
+                typeof report.title === 'string' && typeof report.summary === 'string' &&
+                typeof report.category === 'string' && Array.isArray(report.results) && Array.isArray(report.highlights)) saved.push(report);
+          } catch { /* Skip an unreadable saved report. */ }
+        }
+      } catch { /* Browser storage may be disabled. */ }
+      saved.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+      state.reports.unshift(...saved);
+    }
+
+    function renderReports() {
+      document.getElementById('sidebarReportsCount').textContent = state.reports.length;
+      const query = (document.getElementById('reportSearchInput').value || '').toLowerCase().trim();
+      const filtered = state.reports.filter(r => {
+        const matchCat = state.reportCategoryFilter === 'all' || r.category === state.reportCategoryFilter;
+        const matchQ = r.title.toLowerCase().includes(query) || r.category.toLowerCase().includes(query) || r.summary.toLowerCase().includes(query);
+        return matchCat && matchQ;
+      });
+
+      const list = document.getElementById('reportsList');
+      if (!filtered.length) {
+        list.innerHTML = `<div class="col-span-full glass-card rounded-2xl p-8 text-center text-sm text-sub text-slate-500">Tanlangan filtr bo‘yicha hisobot topilmadi.</div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map(r => `
+        <div class="glass-card rounded-2xl p-5 flex flex-col justify-between gap-4">
+          <div>
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-brand-50 text-brand-700 border border-brand-100">${escapeHtml(r.category)}</span>
+                <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">${escapeHtml(r.schedule || 'Bir martalik')}</span>
+              </div>
+              <span class="text-[11px] text-sub text-slate-400">${escapeHtml(r.date)}</span>
+            </div>
+            <h3 class="text-main text-base font-bold text-slate-900 leading-snug">${escapeHtml(r.title)}</h3>
+            <p class="text-sub text-xs text-slate-500 mt-1.5 leading-relaxed">${escapeHtml(r.summary)}</p>
+          </div>
+          <div class="flex items-center justify-between pt-3 border-t border-subtle border-slate-100">
+            <span class="text-[11px] font-semibold text-sub text-slate-500 inline-flex items-center gap-1">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-brand-600"></i>${escapeHtml(r.author)}
+            </span>
+            <div class="flex items-center gap-2">
+              <button data-preview-id="${r.id}" class="preview-rep-btn px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold transition-colors">Ko‘rish</button>
+              <button data-download-id="${r.id}" class="download-rep-btn p-1.5 rounded-lg surface-muted bg-slate-50 hover:bg-brand-50 text-slate-600 hover:text-brand-700 transition-colors" title="Yuklab olish">
+                <i data-lucide="download" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      document.querySelectorAll('.preview-rep-btn').forEach(btn => btn.addEventListener('click', () => openPreviewModal(btn.dataset.previewId)));
+      document.querySelectorAll('.download-rep-btn').forEach(btn => btn.addEventListener('click', () => downloadReport(btn.dataset.downloadId, 'txt')));
+      window.lucide?.createIcons();
+    }
+
+    function openPreviewModal(repId) {
+      const rep = state.reports.find(r => r.id === repId);
+      if (!rep) return;
+      state.activeReportId = repId;
+      document.getElementById('previewBadge').textContent = rep.category + ' · ' + rep.period;
+      document.getElementById('previewScheduleBadge').textContent = rep.schedule || 'Bir martalik';
+      document.getElementById('previewTitle').textContent = rep.title;
+      document.getElementById('previewMeta').textContent = `Muallif: ${rep.author} · Sana: ${rep.date}`;
+
+      const kpiStrip = (rep.kpis || []).map(k => `
+        <div class="p-3 rounded-xl bg-brand-50/80 dark:bg-blue-950/60 border border-brand-100 dark:border-blue-800">
+          <p class="text-[10px] font-semibold text-sub text-slate-500">${escapeHtml(k.label)}</p>
+          <p class="text-sm sm:text-base font-extrabold text-brand-700 dark:text-sky-300 mt-0.5">${escapeHtml(k.val)}</p>
+        </div>
+      `).join('');
+
+      document.getElementById('previewBody').innerHTML = `
+        ${kpiStrip ? `<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">${kpiStrip}</div>` : ''}
+        <div class="p-4 rounded-xl bg-brand-50/60 border border-brand-100 text-brand-950 dark:bg-blue-950/60 dark:text-blue-100">
+          <p class="text-[11px] font-bold uppercase tracking-wider text-brand-700 dark:text-sky-300 mb-1">Rahbariyat uchun xulosa</p>
+          <p class="whitespace-pre-line">${escapeHtml(rep.summary)}</p>
+        </div>
+        ${renderChatChart(rep.chatChart)}
+        ${(rep.results || []).map(renderEvidence).join('')}
+        ${rep.chartData && window.Chart ? `<div class="p-4 rounded-xl surface-muted bg-white border border-slate-200/80">
+          <p class="text-xs font-bold text-main text-slate-800 mb-2">Vizual dinamika</p>
+          <div class="relative h-48 w-full"><canvas id="previewReportChart"></canvas></div>
+        </div>` : ''}
+        ${rep.highlights.length ? `<div>
+          <h4 class="font-bold text-main text-slate-900 mb-2">Asosiy tahliliy topilmalar</h4>
+          <ul class="space-y-2">
+            ${rep.highlights.map(h => `<li class="flex items-start gap-2 text-sub text-slate-700"><span class="w-1.5 h-1.5 rounded-full bg-brand-600 mt-2 shrink-0"></span><span>${escapeHtml(h)}</span></li>`).join('')}
+          </ul>
+        </div>` : ''}
+        ${rep.recommendation ? `<div class="p-4 rounded-xl surface-muted bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80">
+          <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 mb-1">Tavsiya</p>
+          <p class="text-main text-slate-800">${escapeHtml(rep.recommendation)}</p>
+        </div>` : ''}
+      `;
+
+      const modal = document.getElementById('previewModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      if (charts.preview) charts.preview.destroy();
+      charts.preview = null;
+      if (!rep.chartData || !window.Chart) return;
+      const ctx = document.getElementById('previewReportChart').getContext('2d');
+      const cd = rep.chartData;
+      charts.preview = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: cd.labels,
+          datasets: [{ label: 'Ko‘rsatkich', data: cd.values, backgroundColor: '#2563EB', borderRadius: 6 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      });
+    }
+
+    function downloadReport(repId, fmt = 'txt') {
+      const rep = state.reports.find(r => r.id === repId);
+      if (!rep) return;
+      let content, mime, ext;
+      if (fmt === 'html') {
+        ext = 'html';
+        mime = 'text/html;charset=utf-8';
+        content = `<!DOCTYPE html><html lang="uz"><head><meta charset="UTF-8"><title>${escapeHtml(rep.title)}</title><style>body{font-family:Inter,sans-serif;max-width:780px;margin:40px auto;padding:24px;color:#0F172A;line-height:1.6}h1{color:#1D4ED8} .box{background:#EFF6FF;border-left:4px solid #2563EB;padding:16px;border-radius:8px;margin:16px 0}</style></head><body><h1>${escapeHtml(rep.title)}</h1><p><strong>${escapeHtml(rep.category)}</strong> · ${escapeHtml(rep.period)} · ${escapeHtml(rep.date)} · ${escapeHtml(rep.author)}</p><div class="box" style="white-space:pre-line">${escapeHtml(rep.summary)}</div>${renderChatChart(rep.chatChart)}${(rep.results || []).map(renderEvidence).join('')}${rep.highlights.length ? `<h3>Asosiy topilmalar</h3><ul>${rep.highlights.map(h => `<li>${escapeHtml(h)}</li>`).join('')}</ul>` : ''}${rep.recommendation ? `<div class="box"><strong>Tavsiya:</strong> ${escapeHtml(rep.recommendation)}</div>` : ''}</body></html>`;
+      } else {
+        ext = 'txt';
+        mime = 'text/plain;charset=utf-8';
+        content = [`TABLOAI ENTERPRISE — AI HISOBOT`, `Nomi: ${rep.title}`, `Yo'nalish: ${rep.category} | Davr: ${rep.period} | Sana: ${rep.date} | Muallif: ${rep.author}`, `\nXULOSA:\n${rep.summary}`, ...(rep.results || []).map(result => JSON.stringify({ title: result.title, columns: result.columns, rows: result.rows, is_truncated: result.is_truncated }, null, 2)), ...rep.highlights, rep.recommendation].join('\n');
+      }
+      const blob = new Blob([content], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = rep.title.toLowerCase().replace(/[^a-z0-9]+/g, '_') + '.' + ext;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast(`Hisobot .${ext} formatida yuklab olindi`);
+    }
+
+    // ==================== COMMAND PALETTE ====================
+    const cmdActions = [
+      { label: 'Boshqaruv paneliga o‘tish', tag: 'Bo‘lim', run: () => switchView('dashboard') },
+      { label: 'AI Tahlilchi', tag: 'AI', run: () => switchView('analyst') },
+      { label: 'Hisobotlar bo‘limini ochish', tag: 'Hisobot', run: () => switchView('reports') },
+      { label: 'Ma’lumotlar bazasi va CSV yuklash', tag: 'Baza', run: () => switchView('sources') },
+      { label: 'Yangi hisobot yaratish', tag: 'Amal', run: () => document.getElementById('openReportModalBtn').click() },
+      { label: 'Tahlilchiga namunaviy savol berish', tag: 'AI Savol', run: () => { switchView('analyst'); submitUserMessage(presetPromptsList[0]); } }
+    ];
+
+    function openCmdModal() {
+      const m = document.getElementById('cmdModal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+      const inp = document.getElementById('cmdInput');
+      inp.value = '';
+      renderCmdResults('');
+      inp.focus();
+    }
+
+    function closeCmdModal() {
+      const m = document.getElementById('cmdModal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+
+    function renderCmdResults(query) {
+      const q = query.toLowerCase().trim();
+      const list = cmdActions.filter(a => a.label.toLowerCase().includes(q) || a.tag.toLowerCase().includes(q));
+      const box = document.getElementById('cmdResults');
+      box.innerHTML = list.map((item, i) => `
+        <button data-cmd-idx="${i}" class="cmd-item-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-brand-50 dark:hover:bg-blue-950/60 text-left text-xs sm:text-sm text-main transition-colors">
+          <span class="font-medium">${escapeHtml(item.label)}</span>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-brand-50 text-brand-700">${item.tag}</span>
+        </button>
+      `).join('') || `<p class="text-xs text-sub text-center py-4">Natija topilmadi</p>`;
+
+      document.querySelectorAll('.cmd-item-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          closeCmdModal();
+          list[Number(btn.dataset.cmdIdx)].run();
+        });
+      });
+    }
+
+    // ==================== EVENT LISTENERS ====================
+    document.querySelectorAll('.nav-item').forEach(btn => btn.addEventListener('click', () => switchView(btn.dataset.view)));
+    document.getElementById('openSidebarBtn').addEventListener('click', openMobileSidebar);
+    document.getElementById('closeSidebarBtn').addEventListener('click', closeMobileSidebar);
+    document.getElementById('mobileBackdrop').addEventListener('click', closeMobileSidebar);
+
+    document.getElementById('periodFilter').addEventListener('change', (e) => { state.period = e.target.value; renderDashboard(); });
+    document.getElementById('deptFilter').addEventListener('change', (e) => { state.dept = e.target.value; renderDashboard(); });
+
+    document.getElementById('refreshLiveBtn').addEventListener('click', () => {
+      renderDashboard();
+    });
+
+    document.querySelectorAll('.chart-metric-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.chartMetric = btn.dataset.metric;
+        document.querySelectorAll('.chart-metric-btn').forEach(b => {
+          const active = b.dataset.metric === state.chartMetric;
+          b.className = active
+            ? 'chart-metric-btn px-2.5 py-1 rounded-lg bg-brand-600 text-white transition-all'
+            : 'chart-metric-btn px-2.5 py-1 rounded-lg text-slate-600 hover:text-brand-700 transition-all';
+        });
+        renderDashboard();
+      });
+    });
+
+    document.getElementById('confidenceToggle').addEventListener('change', (e) => {
+      state.showConfidence = e.target.checked;
+      renderDashboard();
+    });
+
+    document.getElementById('dashTableSearch').addEventListener('input', renderDashTopTable);
+    document.getElementById('dashTableSort').addEventListener('change', renderDashTopTable);
+
+    document.querySelectorAll('.currency-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.currency = btn.dataset.currency;
+        document.querySelectorAll('.currency-btn').forEach(b => {
+          const active = b.dataset.currency === state.currency;
+          b.className = active
+            ? 'currency-btn px-2.5 py-1.5 rounded-lg bg-brand-600 text-white shadow-xs transition-all'
+            : 'currency-btn px-2.5 py-1.5 rounded-lg text-slate-600 hover:text-brand-700 transition-all';
+        });
+        if (state.currentView === 'dashboard') renderDashboard();
+        showToast(`Valyuta ${state.currency} ga o‘zgartirildi`);
+      });
+    });
+
+    document.getElementById('themeToggleBtn').addEventListener('click', () => {
+      state.darkMode = !state.darkMode;
+      document.body.classList.toggle('dark-mode', state.darkMode);
+      document.getElementById('themeToggleBtn').innerHTML = `<i data-lucide="${state.darkMode ? 'sun' : 'moon'}" class="w-4 h-4"></i>`;
+      if (state.currentView === 'dashboard') renderDashboard();
+      window.lucide?.createIcons();
+    });
+
+    // Notifications toggle
+    document.getElementById('notifBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('notifDropdown').classList.toggle('hidden');
+    });
+    document.addEventListener('click', (e) => {
+      const dd = document.getElementById('notifDropdown');
+      if (!dd.classList.contains('hidden') && !dd.contains(e.target) && e.target.id !== 'notifBtn') {
+        dd.classList.add('hidden');
+      }
+    });
+    // Command Palette
+    const openCmdBtn = document.getElementById('openCmdBtn');
+    if (openCmdBtn) openCmdBtn.addEventListener('click', openCmdModal);
+    document.getElementById('closeCmdBtn').addEventListener('click', closeCmdModal);
+    document.getElementById('cmdInput').addEventListener('input', (e) => renderCmdResults(e.target.value));
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openCmdModal(); }
+      if (e.key === 'Escape') closeCmdModal();
+    });
+
+    // AI Chat
+    document.getElementById('quickAiBtn').addEventListener('click', () => { switchView('analyst'); document.getElementById('chatInput').focus(); });
+    document.getElementById('openFullAnalystBtn').addEventListener('click', () => { switchView('analyst'); document.getElementById('chatInput').focus(); });
+    document.getElementById('chatForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('chatInput');
+      if (!activeChatRequest && input.value.trim()) { submitUserMessage(input.value); input.value = ''; }
+    });
+    document.getElementById('clearChatBtn').addEventListener('click', () => {
+      activeChatRequest?.abort();
+      activeChatRequest = null;
+      state.chatHistory = [state.chatHistory[0]];
+      renderChat();
+      showToast('Suhbat tozalandi');
+    });
+
+    // Dashboard Export
+    document.getElementById('exportDashboardBtn').addEventListener('click', () => {
+      if (!currentLiveStats) return;
+      const base = currentLiveStats.trend;
+      const metric = base[state.chartMetric];
+      const unit = state.chartMetric === 'orders' ? 'ta' : currentLiveStats.currency;
+      const rows = [['Davr', 'Haqiqiy (' + unit + ')', 'Prognoz (' + unit + ')']];
+      base.labels.forEach((label, i) => rows.push([label, metric.actual[i] ?? '', metric.forecast[i] ?? '']));
+      const blob = new Blob([rows.map(r => r.join(',')).join('\n')], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `tabloai_dashboard_${state.period}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Dashboard ma’lumotlari CSV formatida yuklandi');
+    });
+
+    // CSV Upload
+    document.getElementById('csvFileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => parseCsvText(file.name, ev.target.result);
+      reader.readAsText(file);
+      e.target.value = '';
+    });
+    document.getElementById('loadDemoCsvBtn').addEventListener('click', () => {
+      const demoCsv = [
+        'Filial,Segment,Daromad_USD,Marja_Foiz,Mijozlar_Soni',
+        'Toshkent,Korporativ B2B,245000,32.4,412',
+        'Toshkent,Chakana savdo,185000,24.8,3120',
+        'Samarqand,Korporativ B2B,128000,31.0,215',
+        'Samarqand,E-tijorat,84000,27.5,1480',
+        'Fargona,Chakana savdo,112000,25.2,1890',
+        'Buxoro,Korporativ B2B,96000,29.8,164'
+      ].join('\n');
+      parseCsvText('TabloAI_Demo_Savdo_2026.csv', demoCsv);
+    });
+    document.getElementById('analyzeCsvBtn').addEventListener('click', () => {
+      const csv = state.uploadedCsv;
+      if (!csv || activeChatRequest) return;
+      switchView('analyst');
+      const question = `${csv.name} faylidagi ma’lumotlarni tekshir.`;
+      const missing = csv.rows.reduce((sum, row) => sum + row.filter(value => !value).length, 0);
+      const text = `${csv.name} faylida ${csv.rows.length} ta yozuv va ${csv.headers.length} ta ustun bor. Bo‘sh kataklar soni — ${missing}.\nUstunlar: ${csv.headers.join(', ')}.`;
+      state.chatHistory.push({ role: 'user', text: question, localFile: true }, {
+        role: 'ai', question, text, execMeta: 'Lokal CSV', localFile: true, savable: true,
+        results: [{
+          title: 'CSV namunasi', columns: csv.headers, is_truncated: csv.rows.length > 20,
+          rows: csv.rows.slice(0, 20).map(row => Object.fromEntries(csv.headers.map((key, i) => [key, row[i]])))
+        }]
+      });
+      renderChat();
+    });
+
+    // Reports Studio
+    document.querySelectorAll('.rep-cat-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.reportCategoryFilter = btn.dataset.cat;
+        document.querySelectorAll('.rep-cat-btn').forEach(b => {
+          const active = b.dataset.cat === state.reportCategoryFilter;
+          b.className = active
+            ? 'rep-cat-btn px-3 py-1.5 rounded-xl bg-brand-600 text-white text-xs font-semibold'
+            : 'rep-cat-btn px-3 py-1.5 rounded-xl surface-muted bg-white border border-slate-200 text-slate-600 text-xs font-semibold hover:border-brand-300';
+        });
+        renderReports();
+      });
+    });
+
+    function closeReportModal() {
+      activeReportRequest?.abort();
+      activeReportRequest = null;
+      document.querySelector('#newReportForm button[type="submit"]').disabled = false;
+      document.getElementById('reportStatus').textContent = '';
+      const m = document.getElementById('reportModal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+    document.getElementById('openReportModalBtn').addEventListener('click', () => {
+      const m = document.getElementById('reportModal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+      document.getElementById('reportTitleInput').focus();
+    });
+    document.getElementById('closeReportModalBtn').addEventListener('click', closeReportModal);
+    document.getElementById('cancelReportModalBtn').addEventListener('click', closeReportModal);
+
+    document.getElementById('newReportForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const title = document.getElementById('reportTitleInput').value.trim();
+      if (!title || activeReportRequest) return;
+      const category = document.getElementById('reportCategoryInput').value;
+      const period = document.getElementById('reportPeriodInput').value;
+      const status = document.getElementById('reportStatus');
+      const button = document.querySelector('#newReportForm button[type="submit"]');
+      const request = new AbortController();
+      activeReportRequest = request;
+      button.disabled = true;
+      status.textContent = 'Hisobot uchun ma’lumotlar hisoblanmoqda…';
+      try {
+        const prompt = period === 'Barcha davrlar' && presetPromptsList.includes(title) ? title : `${title}\nYo‘nalish: ${category}. Davr: ${period}. Ulangan bazadan hisobot uchun ko‘rsatkichlarni hisoblang va natijalarni tushuntiring.`;
+        const { data, answer, results } = await requestAnalysis(prompt, [], request.signal);
+        if (request.signal.aborted) return;
+        if (!data.success || !results.some(result => result.sql_query)) {
+          status.textContent = `Hisobot saqlanmadi. ${answer}`;
+          return;
+        }
+        const id = saveReport({ title, category, period, summary: answer, results, chatChart: data.chart, highlights: data.validation_warnings || [] });
+        document.getElementById('reportTitleInput').value = '';
+        closeReportModal();
+        switchView('reports');
+        openPreviewModal(id);
+      } catch (error) {
+        if (!request.signal.aborted) status.textContent = error instanceof TypeError || error instanceof SyntaxError
+          ? 'Tahlil xizmatiga ulanib bo‘lmadi. Qayta urinib ko‘ring.' : error.message;
+      } finally {
+        if (activeReportRequest === request) { activeReportRequest = null; button.disabled = false; }
+      }
+    });
+
+    document.getElementById('reportSearchInput').addEventListener('input', renderReports);
+    document.getElementById('closePreviewModalBtn').addEventListener('click', () => {
+      const m = document.getElementById('previewModal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    });
+    document.getElementById('downloadPreviewBtn').addEventListener('click', () => { if (state.activeReportId) downloadReport(state.activeReportId, 'txt'); });
+    document.getElementById('downloadHtmlReportBtn').addEventListener('click', () => { if (state.activeReportId) downloadReport(state.activeReportId, 'html'); });
+
+    // ==================== INIT ====================
+    restoreReports();
+    renderPresetPrompts();
+    loadPresetPrompts();
+    renderChat();
+    loadSourceProfile();
+    renderReports();
+    renderDashboard();
+  </script>
+</body>
+</html>

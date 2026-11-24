@@ -1,0 +1,107 @@
+{
+  "schema_fingerprint": "d39511e3e89ed51022f6fe4cca03471dc87e9911955bea50e42a94c6e0b32306",
+  "cases": [
+    {
+      "name": "cash",
+      "question": "Mijozlardan jami qancha pul tushgan? Faqat jami summani ko‘rsat.",
+      "gold_sql": "SELECT SUM(amount) AS cash_uzs FROM payments"
+    },
+    {
+      "name": "gross_profit",
+      "question": "Yakunlangan buyurtmalar bo‘yicha yalpi foyda qancha? Faqat summani ko‘rsat.",
+      "gold_sql": "SELECT SUM(total_amount-total_cost) AS gross_profit FROM orders WHERE status='completed'"
+    },
+    {
+      "name": "refunds",
+      "question": "2026-yil oktabrda mijozlarga qaytarilgan to‘lovlarning jami summasi qancha?",
+      "expected_error": "metric_unavailable"
+    },
+    {
+      "name": "completed_sales",
+      "question": "Yakunlangan buyurtmalarning jami sotuv summasi qancha?",
+      "gold_sql": "SELECT SUM(total_amount) AS sales FROM orders WHERE status='completed'"
+    },
+    {
+      "name": "branch_ranking",
+      "question": "2026-yil oktabrda yakunlangan buyurtmalar summasi eng katta bo‘lgan uchta filial qaysi? Faqat filial nomi va summasini kamayish tartibida ko‘rsat.",
+      "gold_sql": "SELECT b.name AS branch, SUM(o.total_amount) AS sales FROM orders o JOIN branches b ON b.id=o.branch_id WHERE o.status='completed' AND o.order_date>='2026-10-01' AND o.order_date<'2026-11-01' GROUP BY b.id,b.name ORDER BY sales DESC,b.id LIMIT 3",
+      "ranked_chart": true
+    },
+    {
+      "name": "oop_expense",
+      "question": "2026-yil oktabrda jami operatsion xarajat qancha bo‘lgan? Faqat summani ko‘rsat.",
+      "gold_sql": "SELECT SUM(amount) AS expenses FROM pnl_expenses WHERE expense_date >= '2026-10-01' AND expense_date < '2026-11-01'"
+    },
+    {
+      "name": "cash_october",
+      "question": "2026-yil oktabrda to‘lov sanasi bo‘yicha mijozlardan qancha pul kelib tushgan?",
+      "gold_sql": "SELECT SUM(amount) AS cash_uzs FROM payments WHERE payment_date >= '2026-10-01' AND payment_date < '2026-11-01'"
+    },
+    {
+      "name": "distinct_buyers",
+      "question": "2026-yil oktabrda nechta turli mijozning kamida bitta buyurtmasi yakunlangan? Faqat sonini ko‘rsat.",
+      "gold_sql": "SELECT COUNT(DISTINCT client_id) AS buyers FROM orders WHERE status='completed' AND order_date >= '2026-10-01' AND order_date < '2026-11-01'"
+    },
+    {
+      "name": "after_tax",
+      "question": "Barcha soliqlar va foiz xarajatlaridan keyin qolgan sof foyda qancha?",
+      "expected_error": "metric_unavailable"
+    },
+    {
+      "name": "avg_check",
+      "question": "2026-yil oktabrda yakunlangan buyurtmaning o‘rtacha summasi qancha? So‘mgacha yaxlitla.",
+      "gold_sql": "SELECT ROUND(AVG(total_amount),0) AS avg_check FROM orders WHERE status='completed' AND order_date >= '2026-10-01' AND order_date < '2026-11-01'"
+    },
+    {
+      "name": "overdue",
+      "question": "Yig‘ilgan qoldiqlar bo‘yicha muddati o‘tgan debitorlik qarzining jami summasi qancha?",
+      "gold_sql": "SELECT SUM(overdue_receivable) AS overdue FROM debt_settlements"
+    },
+    {
+      "name": "smallest_branch",
+      "question": "2026-yil sentabrda yakunlangan buyurtma summasi eng kichik bo‘lgan ikkita filial qaysi? Faqat filial nomi va summasini o‘sish tartibida chiqar.",
+      "gold_sql": "SELECT b.name AS branch,SUM(o.total_amount) AS sales FROM orders o JOIN branches b ON b.id=o.branch_id WHERE o.status='completed' AND o.order_date>='2026-09-01' AND o.order_date<'2026-10-01' GROUP BY b.id,b.name ORDER BY sales,b.id LIMIT 2",
+      "ranked_chart": true
+    },
+    {
+      "name": "stock_skus",
+      "question": "Ombor qoldig‘i noldan katta bo‘lgan turli mahsulotlar jami nechta?",
+      "gold_sql": "SELECT COUNT(DISTINCT product_id) AS products FROM warehouse_stocks WHERE quantity>0"
+    },
+    {
+      "name": "completed_count",
+      "question": "2026-yil oktabrda jami nechta buyurtma yakunlangan?",
+      "gold_sql": "SELECT COUNT(*) AS orders FROM orders WHERE status='completed' AND order_date >= '2026-10-01' AND order_date < '2026-11-01'"
+    },
+    {
+      "name": "cancelled_count",
+      "question": "2026-yil sentabrda bekor qilingan buyurtmalar soni qancha?",
+      "gold_sql": "SELECT COUNT(*) AS cancelled FROM orders WHERE status='cancelled' AND order_date >= '2026-09-01' AND order_date < '2026-10-01'"
+    },
+    {
+      "name": "weighted_margin",
+      "question": "Yakunlangan buyurtmalarning umumiy yalpi marjasi necha foiz? Yalpi foydani jami sotuvga bo‘l va foizni ikki kasrgacha yaxlitla.",
+      "gold_sql": "SELECT ROUND(100.0*SUM(total_amount-total_cost)/NULLIF(SUM(total_amount),0),2) AS pct FROM orders WHERE status='completed'"
+    },
+    {
+      "name": "invoice_total",
+      "question": "2026-yil oktabrda faktura sanasi bo‘yicha yozilgan hisob-fakturalarning jami summasi qancha?",
+      "gold_sql": "SELECT SUM(total_amount) AS invoiced FROM invoices WHERE invoice_date >= '2026-10-01' AND invoice_date < '2026-11-01'"
+    },
+    {
+      "name": "cash_method",
+      "question": "2026-yil oktabrda to‘lov usullari bo‘yicha qancha pul tushgan? Faqat usul kodi va summani kamayish tartibida ko‘rsat.",
+      "gold_sql": "SELECT payment_method AS method,SUM(amount) AS cash FROM payments WHERE payment_date >= '2026-10-01' AND payment_date < '2026-11-01' GROUP BY payment_method ORDER BY cash DESC,payment_method"
+    },
+    {
+      "name": "revenue_missing_period",
+      "question": "Savdo nega pasaydi?",
+      "expected_error": "clarification_required"
+    },
+    {
+      "name": "unpaid_balance",
+      "question": "Debitorlik hisob-kitoblarida mijozlardan olinadigan jami qoldiq qancha? Faqat summani ko‘rsat.",
+      "gold_sql": "SELECT SUM(balance_receivable) AS balance FROM debt_settlements"
+    }
+  ]
+}

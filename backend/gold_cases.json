@@ -1,0 +1,56 @@
+{
+  "database_name": "kimyosanoatdb",
+  "schema_fingerprint": "1d4b8ad5191325a0ed27fff9b6962cc87f2fb43d9bdfdb2598cbf6514c0669b4",
+  "cases": [
+    {
+      "name": "organization_count",
+      "question": "Bazada jami nechta tashkilot bor?",
+      "gold_sql": "SELECT COUNT(*) AS total FROM organization"
+    },
+    {
+      "name": "authorized_warehouse_count",
+      "question": "Bazada nechta vakolatli ombor bor?",
+      "gold_sql": "SELECT COUNT(DISTINCT w.id) AS total FROM public.region r JOIN public.district d ON d.region_id = r.id JOIN public.warehouse w ON w.district_id = d.id WHERE COALESCE(w.is_deleted, FALSE) = FALSE AND w.working_factory_id IS NOT NULL AND COALESCE(w.name, '') NOT ILIKE '%Chiqim Ombor%' AND COALESCE(w.name, '') NOT ILIKE '%Qoldiq%'"
+    },
+    {
+      "name": "qashqadaryo_authorized_warehouse_count",
+      "question": "Qashqadartoda nechta vakolatli ombor?",
+      "gold_sql": "SELECT COUNT(DISTINCT w.id) AS total FROM public.region r JOIN public.district d ON d.region_id = r.id JOIN public.warehouse w ON w.district_id = d.id WHERE r.name_uz = 'Qashqadaryo viloyati' AND COALESCE(w.is_deleted, FALSE) = FALSE AND w.working_factory_id IS NOT NULL AND COALESCE(w.name, '') NOT ILIKE '%Chiqim Ombor%' AND COALESCE(w.name, '') NOT ILIKE '%Qoldiq%'"
+    },
+    {
+      "name": "authorized_warehouse_count_by_region",
+      "question": "har bitta viloyatda vakolatli omborlar nechta?",
+      "gold_sql": "SELECT r.name_uz AS viloyat, COUNT(DISTINCT w.id) AS ombor_soni FROM public.region r JOIN public.district d ON d.region_id = r.id JOIN public.warehouse w ON w.district_id = d.id WHERE COALESCE(w.is_deleted, FALSE) = FALSE AND w.working_factory_id IS NOT NULL AND COALESCE(w.name, '') NOT ILIKE '%Chiqim Ombor%' AND COALESCE(w.name, '') NOT ILIKE '%Qoldiq%' GROUP BY r.id, r.name_uz ORDER BY ombor_soni DESC, viloyat"
+    },
+    {
+      "name": "navoiyazot_latest_debtor_balance",
+      "question": "Navoiyazotning eng so'nggi debitor qarzi qancha?",
+      "gold_sql": "SELECT COALESCE(SUM(d.amount), 0) AS total FROM debtor_creditor1c d LEFT JOIN organization o ON d.organization_id = o.id WHERE d.date_created = (SELECT MAX(date_created) FROM debtor_creditor1c) AND d.type = 'debitor' AND o.name ILIKE '%Navoiyazot%'"
+    },
+    {
+      "name": "top_five_sold_products",
+      "question": "Eng ko'p sotilgan top 5 ta mahsulot qaysilar?",
+      "gold_sql": "SELECT product_name, SUM(COALESCE(real_quantity, quantity)) AS total_quantity FROM sold_lot WHERE product_name IS NOT NULL GROUP BY product_name ORDER BY total_quantity DESC, product_name ASC LIMIT 5"
+    },
+    {
+      "name": "investment_count",
+      "question": "Jami investitsiya loyihalari nechta?",
+      "gold_sql": "SELECT COUNT(*) AS total FROM investment"
+    },
+    {
+      "name": "actual_sales_revenue",
+      "question": "Amaldagi jami sotuv tushumi qancha?",
+      "gold_sql": "SELECT COALESCE(SUM(revenue), 0) AS total_revenue FROM finmodel_sales_actual_monthly"
+    },
+    {
+      "name": "latest_stock_top_ten",
+      "question": "Eng so'nggi sana bo'yicha ombor qoldig'i eng ko'p top 10 ta mahsulot qaysilar?",
+      "gold_sql": "SELECT COALESCE(p.name_uz, p.mxik_name) AS product_name, COALESCE(SUM(w.quantity), 0) AS total_quantity FROM warehouse_daily_amount w LEFT JOIN product p ON w.product_id = p.id WHERE w.date = (SELECT MAX(date) FROM warehouse_daily_amount) AND COALESCE(p.name_uz, p.mxik_name) IS NOT NULL GROUP BY COALESCE(p.name_uz, p.mxik_name) ORDER BY total_quantity DESC NULLS LAST, product_name ASC LIMIT 10"
+    },
+    {
+      "name": "personnel_count",
+      "question": "Xodimlar jadvalida jami nechta yozuv bor?",
+      "gold_sql": "SELECT COUNT(*) AS total FROM personal_check"
+    }
+  ]
+}
